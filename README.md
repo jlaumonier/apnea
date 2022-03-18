@@ -1,2 +1,2 @@
 # apnea
-Studying and analyze CPAP and other apnea data
+Studying and analyzing CPAP and other apnea data
