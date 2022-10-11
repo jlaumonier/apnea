@@ -2,19 +2,39 @@ import struct
 
 # OSCAR -- Session::LoadEvents(QString filename)
 def load_file(filename):
+    databytes = None
     with open(filename, mode='rb') as file: # b is important -> binary
         data = file.read()
 
-        (magicnum,) = struct.unpack('I', data[:4])
-        (version,) = struct.unpack('H', data[4:6])
-        # header >> type; // File type(quint16)
-        # header >> machid; // Device ID(quint32)
-        # header >> sessid; // (quint32)
-        # header >> s_first; // (qint64)
-        # header >> s_last; // (qint64)
+        # Header
+        (magicnum, version, typ, machid, sessid, s_first, s_last) = struct.unpack('IHHIIqq', data[:32])
 
         assert magicnum == 3341948587
         assert version == 10
+        assert typ == 1
+        assert machid == 2327
+        assert sessid == 1664241600
+        assert s_first == 1664241616000
+        assert s_last == 1664259258000
+
+        if version >= 10:
+            (compmethod, machtype, datasize, crc16) = struct.unpack('HHIH', data[32:42])
+
+            assert compmethod==0
+            assert machtype==1
+            assert datasize==1964796
+            assert crc16==0
+
+            temp = data[42:]
+
+            if compmethod > 0:
+                print('COMPRESSION NOT SUPPORTED')
+            else:
+                databytes = temp
+        else:
+            print('VERSION NOT SUPPORTED')
+
+
 
 
 load_file('../data/63324fc0.001')
