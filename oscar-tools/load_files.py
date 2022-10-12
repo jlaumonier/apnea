@@ -24,15 +24,31 @@ def load_file(filename):
             assert machtype==1
             assert datasize==1964796
             assert crc16==0
+        else:
+            print('VERSION NOT SUPPORTED')
 
-            temp = data[42:]
+        temp = data[42:]
 
+        if version >= 10:
             if compmethod > 0:
                 print('COMPRESSION NOT SUPPORTED')
             else:
                 databytes = temp
         else:
             print('VERSION NOT SUPPORTED')
+
+        # NB of channels
+        (mcsize, ) = struct.unpack('h', databytes[:2])
+
+        assert mcsize == 18
+
+        #for c in range(mcsize):
+        (code, ) = struct.unpack('I', databytes[2:6])
+        assert code == 4354
+
+        (size2, ) = struct.unpack('h', databytes[6:8])
+        assert size2 == 1
+
 
 
 
