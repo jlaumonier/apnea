@@ -70,7 +70,9 @@ class TestOscarSessionParser(TestCase):
             stream = StringInputStream(data)
             oscar_session = OscarSessionParser(stream)
             self._test(oscar_session)
-            self._displayTree(oscar_session)
+            #self._displayTree(oscar_session)
+            res = oscar_session.toOSCARStruct()
+            print(res)
 
 
 

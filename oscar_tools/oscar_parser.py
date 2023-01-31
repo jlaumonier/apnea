@@ -2,7 +2,7 @@
 
 from hachoir.stream import StringInputStream, LITTLE_ENDIAN
 from hachoir.field import FieldSet, Parser, UInt16, UInt32, UInt64, Int64, Int32, UInt8, Float64, String
-
+from oscar_tools.oscar_data import OSCARSessionHeader, OSCARSession
 
 class Header(FieldSet):
     def createFields(self):
@@ -19,6 +19,17 @@ class Header(FieldSet):
             yield UInt16(self, "machtype", "Device Type ")
             yield UInt32(self, "datasize", "Size of Uncompressed Data")
             yield UInt16(self, "crc16", "CRC16 of Uncompressed Data")
+
+    def toOSCARStruct(self):
+        result = OSCARSessionHeader()
+        result.magicnumber = self['magicnumber'].value
+        result.version = self['version'].value
+        result.filetype = self['filetype'].value
+        result.deviceid = self['deviceid'].value
+        result.sessionid = self['sessionid'].value
+        result.sfirst = self['sfirst'].value
+        result.slast = self['slast'].value
+        return result
 
 
 class ChannelList(FieldSet):
@@ -94,6 +105,13 @@ class OscarSessionParser(Parser):
         #     code = mcorder[i]
         #     size2 = sizevec[i]
         #     for j in range(size2):
+
+    def toOSCARStruct(self):
+        result = OSCARSession()
+        result.header = self['header'].toOSCARStruct()
+        result.data = self['data'].toOSCARStruct()
+        return result
+
 
 
 
