@@ -1,32 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ufwb version="1.17">
-    <grammar name="OscarSession" start="id:1" author="laumo">
-        <structure name="Oscar_session" id="1" encoding="ISO_8859-1:1987" endian="little" signed="no">
-            <structure name="header" id="2">
-                <number name="magicnumber" id="3" type="integer" length="4"/>
-                <number name="version" id="4" type="integer" length="2"/>
-                <number name="filetype" id="5" type="integer" length="2"/>
-                <number name="deviceid" id="6" type="integer" length="4"/>
-                <number name="sessionid" id="7" type="integer" length="4"/>
-                <number name="sfirst" id="8" type="integer" length="8"/>
-                <number name="slast" id="9" type="integer" length="8"/>
-                <number name="compmethod" id="10" type="integer" length="2"/>
-                <number name="machtype" id="11" type="integer" length="2"/>
-                <number name="datasize" id="12" type="integer" length="4"/>
-                <number name="crc16" id="13" type="integer" length="2"/>
+    <grammar name="OscarSession" start="id:72" author="laumo">
+        <structure name="Oscar_session" id="72" encoding="ISO_8859-1:1987" endian="little" signed="no">
+            <structure name="header" id="73">
+                <number name="magicnumber" id="74" type="integer" length="4"/>
+                <number name="version" id="75" type="integer" length="2"/>
+                <number name="filetype" id="76" type="integer" length="2"/>
+                <number name="deviceid" id="77" type="integer" length="4"/>
+                <number name="sessionid" id="78" type="integer" length="4"/>
+                <number name="sfirst" id="79" type="integer" length="8"/>
+                <number name="slast" id="80" type="integer" length="8"/>
+                <number name="compmethod" id="81" type="integer" length="2"/>
+                <number name="machtype" id="82" type="integer" length="2"/>
+                <number name="datasize" id="83" type="integer" length="4"/>
+                <number name="crc16" id="84" type="integer" length="2"/>
             </structure>
-            <structure name="Data" id="15" strokecolor="FF0000">
-                <number name="mcsize" id="16" type="integer" length="2"/>
-                <structure name="Channels" id="17" length="0" repeat="id:16" repeatmin="0" repeatmax="-1">
-                    <number name="code" id="18" type="integer" length="4"/>
-                    <number name="size2" id="19" type="integer" length="2"/>
-                    <structure name="Event" id="20" repeat="id:19" repeatmin="0" repeatmax="-1">
-                        <number name="ts1" id="21" type="integer" length="8"/>
-                        <number name="ts2" id="22" type="integer" length="8"/>
-                        <number name="evcount" id="23" type="integer" length="4"/>
-                        <number name="t8" id="24" type="integer" length="1"/>
-                        <number name="rate" id="25" type="float" length="8" display="binary"/>
-                        <number name="gain" id="26" fillcolor="00B3FF" type="float" length="8"/>
+            <structure name="Data" id="86" strokecolor="FF0000">
+                <number name="mcsize" id="87" type="integer" length="2"/>
+                <structure name="Channels" id="88" length="0" repeat="id:87" repeatmin="0" repeatmax="-1">
+                    <number name="code" id="89" type="integer" length="4"/>
+                    <number name="size2" id="90" type="integer" length="2"/>
+                    <structure name="Event" id="91" length="0" alignment="0" repeat="id:90" repeatmin="0" repeatmax="-1">
+                        <number name="ts1" id="92" type="integer" length="8"/>
+                        <number name="ts2" id="93" type="integer" length="8"/>
+                        <number name="evcount" id="94" type="integer" length="4"/>
+                        <number name="t8" id="95" type="integer" length="1"/>
+                        <number name="rate" id="96" type="float" length="8" display="binary"/>
+                        <number name="gain" id="97" fillcolor="00B3FF" type="float" length="8"/>
+                        <number name="offset" id="98" type="float" length="8"/>
+                        <number name="mn" id="99" type="float" length="8"/>
+                        <number name="mx" id="100" type="float" length="8"/>
+                        <number name="len_dim" id="107" type="integer" length="4"/>
+                        <string name="dim" id="101" type="fixed-length" length="0" encoding="UTF-16"/>
+                        <number name="second_field" id="102" type="integer" length="1"/>
                     </structure>
                 </structure>
             </structure>

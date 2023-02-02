@@ -18,35 +18,35 @@ class OSCARSessionHeader:
 
 @dataclass
 class OSCARSessionEvent:
-    ts1: int
-    ts2: int
-    evcount: int
-    t8: int
-    rate: float
-    gain: float
-    offset: float
-    mn: float
-    mx: float
-    len_dim: int
-    dim: str
-    second_field: bool
-    mn2: float
-    mx2: float
-    data: list[int] = field(default_factory=int)
-    data2: list[int] = field(default_factory=int)
-    time: list[int] = field(default_factory=int)
+    ts1: int = 0
+    ts2: int = 0
+    evcount: int = 0
+    t8: int = 0
+    rate: float = 0.0
+    gain: float = 0.0
+    offset: float = 0.0
+    mn: float = 0.0
+    mx: float = 0.0
+    len_dim: int = 0
+    dim: str = ""
+    second_field: bool = False
+    mn2: float = 0.0
+    mx2: float = 0.0
+    data: list[int] = field(default_factory=list[int])
+    data2: list[int] = field(default_factory=list[int])
+    time: list[int] = field(default_factory=list[int])
 
 @dataclass
 class OSCARSessionChannel:
-    code: int
-    size2: int
-    events: list[OSCARSessionEvent] = field(default_factory=OSCARSessionEvent)
+    code: int = 0
+    size2: int = 0
+    events: list[OSCARSessionEvent] = field(default_factory=list[OSCARSessionEvent])
 
 
 @dataclass
 class OSCARSessionData:
-    mcsize: int
-    channels: list[OSCARSessionChannel] = field(default_factory=OSCARSessionChannel)
+    mcsize: int = 0
+    channels: list[OSCARSessionChannel] = field(default_factory=list[OSCARSessionChannel])
 
 
 @dataclass

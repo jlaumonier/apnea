@@ -1,4 +1,5 @@
 # Test loading with Hachoir
+# Deprecated - It would need too much time to understand the best way to read dynamic data with Hachoir.
 
 from hachoir.stream import StringInputStream, LITTLE_ENDIAN
 from hachoir.field import FieldSet, Parser, UInt16, UInt32, UInt64, Int64, Int32, UInt8, Float64, String
