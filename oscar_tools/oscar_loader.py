@@ -18,6 +18,7 @@ def binary(num):
 
 
 def unpack(buffer, format, position):
+    # DEBUG
     # print('from', position,
     #       'to', position + struct.calcsize(format),
     #       'size', struct.calcsize(format),
@@ -79,6 +80,7 @@ def read_channel_metadata(buffer, position):
     position, (code,) = unpack(buffer, 'I', position)
     position, (size2,) = unpack(buffer, 'h', position)
     channel_data = OSCARSessionChannel()
+    # Codes are described in OSCAR/schema.cpp
     channel_data.code = code
     channel_data.size2 = size2
     for evt in range(size2):
@@ -91,8 +93,14 @@ def read_channel_data(buffer, position, data_data, channel_num):
     for evt_id in range(channel_data.size2):
         event_data = channel_data.events[evt_id]
         # 's' is not correct since it interprets as char
-        position, (data,) = unpack(buffer, str(event_data.evcount*2)+'s', position)
-        event_data.data = data
+        position, data = unpack(buffer, 'H'*event_data.evcount, position)
+        event_data.data = list(data)
+        if event_data.second_field:
+            position, data2 = unpack(buffer, 'H'*event_data.evcount, position)
+            event_data.data2 = list(data2)
+        if event_data.t8 != 0:
+            position, time_data = unpack(buffer, 'I' * event_data.evcount, position)
+            event_data.time = list(time_data)
     return position, channel_data
 
 
@@ -139,7 +147,7 @@ def read_session(buffer, position):
 
     if oscar_session_header.version >= 10:
         if compmethod > 0:
-            print('COMPRESSION NOT SUPPORTED')
+            print('COMPRESSION NOT SUPPORTED YET')
         else:
             databytes = temp
     else:

@@ -1,2 +1,3 @@
 wheel
-hachoir
+plotly
+pandas
