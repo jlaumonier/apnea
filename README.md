@@ -14,4 +14,12 @@ Testing data (in data/) is one nap I took (about 15 minutes). Not all events are
 ## Advancement
 At the moment, this is a first Proof of concept to read session files (.001 files).
 
+## Session file data format
 
+![image](oscar_format.drawio.png)
+
+## Result (one chanel)
+
+Here the result of the first channel/event ploted with plotly
+
+![image](plotExpiratoryTime.png)
