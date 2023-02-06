@@ -3,6 +3,7 @@ from dataclasses import asdict
 from oscar_tools.oscar_loader import read_session
 import pandas as pd
 import plotly.express as px
+import datetime
 
 expected_oscar_data_dict = {'header': {'magicnumber': 3341948587,
                           'version': 10,
@@ -74,9 +75,11 @@ class TestOscarSessionLoader(TestCase):
 
             # Testing plot. Here is the Expiratory Time
             gain = oscar_session_data.data.channels[0].events[0].gain
-            df = pd.DataFrame(data = {'temps':oscar_session_data.data.channels[0].events[0].time,
+            df = pd.DataFrame(data = {'time':oscar_session_data.data.channels[0].events[0].time,
                                       'data':oscar_session_data.data.channels[0].events[0].data})
             df['data_gain'] = df['data'] * gain
-            fig = px.line(df, x="temps", y="data_gain")
+            df['time_absolute'] = df['time'] + oscar_session_data.data.channels[0].events[0].ts1
+            df['time_absolute'] = pd.to_datetime(df['time_absolute'], unit='ms')
+            fig = px.line(df, x="time_absolute", y="data_gain")
             fig.show()
 
