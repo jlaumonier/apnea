@@ -7,10 +7,12 @@ from oscar_tools.oscar_data import OSCARSessionHeader, OSCARSession, \
 
 # OSCAR -- Session::LoadEvents(QString filename)
 def load_session(filename):
+    oscar_session_data = None
     with open(filename, mode='rb') as file:
         data = file.read()
         position = 0
-        oscar_session_data = read_session(data, position)
+        position, oscar_session_data = read_session(data, position)
+    return oscar_session_data
 
 
 def binary(num):
@@ -93,13 +95,13 @@ def read_channel_data(buffer, position, data_data, channel_num):
     for evt_id in range(channel_data.size2):
         event_data = channel_data.events[evt_id]
         # 's' is not correct since it interprets as char
-        position, data = unpack(buffer, 'H'*event_data.evcount, position)
+        position, data = unpack(buffer, 'h'*event_data.evcount, position)
         event_data.data = list(data)
         if event_data.second_field:
-            position, data2 = unpack(buffer, 'H'*event_data.evcount, position)
+            position, data2 = unpack(buffer, 'h'*event_data.evcount, position)
             event_data.data2 = list(data2)
         if event_data.t8 != 0:
-            position, time_data = unpack(buffer, 'I' * event_data.evcount, position)
+            position, time_data = unpack(buffer, 'i' * event_data.evcount, position)
             event_data.time = list(time_data)
     return position, channel_data
 
@@ -161,3 +163,11 @@ def read_session(buffer, position):
     oscar_session.data = oscar_session_data
 
     return position, oscar_session
+
+
+def get_channel_from_code(oscar_session_data, channelID):
+    list_result =  [item for item in oscar_session_data.data.channels if item.code == channelID.value]
+    if len(list_result) > 0:
+        return list_result[0]
+    else:
+        return list_result

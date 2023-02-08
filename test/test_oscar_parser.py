@@ -1,9 +1,8 @@
 from unittest import TestCase
 from dataclasses import asdict
-from oscar_tools.oscar_loader import read_session
-import pandas as pd
-import plotly.express as px
-import datetime
+from oscar_tools.oscar_loader import read_session, load_session, get_channel_from_code
+from oscar_tools.schema import *
+
 
 expected_oscar_data_dict = {'header': {'magicnumber': 3341948587,
                           'version': 10,
@@ -65,7 +64,7 @@ class TestOscarSessionLoader(TestCase):
 
         self.assertDictEqual(expected_oscar_data_dict, oscar_session_data_dict)
 
-    def test_init(self):
+    def test_read_session(self):
         filename = '../data/63c6e928.001'
         with open(filename, mode='rb') as file:  # b is important -> binary
             data = file.read()
@@ -73,13 +72,11 @@ class TestOscarSessionLoader(TestCase):
             position, oscar_session_data = read_session(data, position)
             self._test(oscar_session_data)
 
-            # Testing plot. Here is the Expiratory Time
-            gain = oscar_session_data.data.channels[0].events[0].gain
-            df = pd.DataFrame(data = {'time':oscar_session_data.data.channels[0].events[0].time,
-                                      'data':oscar_session_data.data.channels[0].events[0].data})
-            df['data_gain'] = df['data'] * gain
-            df['time_absolute'] = df['time'] + oscar_session_data.data.channels[0].events[0].ts1
-            df['time_absolute'] = pd.to_datetime(df['time_absolute'], unit='ms')
-            fig = px.line(df, x="time_absolute", y="data_gain")
-            fig.show()
+    def test_get_channel_from_code(self):
+        filename = '../data/63c6e928.001'
+        oscar_session_data = load_session(filename)
+        real_channel = get_channel_from_code(oscar_session_data, ChannelID.CPAP_Te)
+        expected_channel = oscar_session_data.data.channels[0]
+
+        self.assertEqual(expected_channel, real_channel)
 
