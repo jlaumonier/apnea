@@ -1,21 +1,37 @@
-import pandas as pd
+from dash import Dash, html, dcc
+from dash.dependencies import Input, Output
 import plotly.express as px
-import datetime
 
-from oscar_tools.oscar_loader import load_session, get_channel_from_code
+from oscar_tools.oscar_loader import load_session, event_data_to_dataframe
 from oscar_tools.schema import *
 
-oscar_session_data = load_session('data/63c6e928.001')
+app = Dash(__name__)
 
-channel = get_channel_from_code(oscar_session_data, ChannelID.CPAP_FlowRate)
-# Testing plot. Here is the Flow Rata
-gain = channel.events[0].gain
-if channel.events[0].t8 == 0:
-    channel.events[0].time = range(0, channel.events[0].evcount*int(channel.events[0].rate), int(channel.events[0].rate))
-df = pd.DataFrame(data={'time': channel.events[0].time,
-                        'data': channel.events[0].data})
-df['data_gain'] = df['data'] * gain
-df['time_absolute'] = df['time'] + channel.events[0].ts1
-df['time_absolute'] = pd.to_datetime(df['time_absolute'], unit='ms')
-fig = px.line(df, x="time_absolute", y="data_gain")
-fig.show()
+oscar_session_data = load_session('data/63c6e928.001')
+list_existing_channel_options = [channel.code for channel in oscar_session_data.data.channels]
+list_channel_options = [{'label': channel[5], 'value': channel[1].value} for channel in CHANNELS if
+                        channel[1].value in list_existing_channel_options]
+
+app.layout = html.Div(children=[
+    html.H1(children='Oscar Apnea data visualization'),
+    dcc.Dropdown(options=list_channel_options, value=ChannelID.CPAP_Pressure.value, id='list_channel'),
+    dcc.Graph(id='graph-data')
+])
+
+
+@app.callback(
+    Output(component_id='graph-data', component_property='figure'),
+    Input(component_id='list_channel', component_property='value')
+)
+def update_output(value):
+    label = [item[5] for item in CHANNELS if item[1].value == value][0]
+    df = event_data_to_dataframe(oscar_session_data, value)
+    if df is not None:
+        fig = px.line(df, x="time_absolute", y=label)
+        return fig
+    else:
+        print('No data')
+
+
+if __name__ == '__main__':
+    app.run_server(debug=True)

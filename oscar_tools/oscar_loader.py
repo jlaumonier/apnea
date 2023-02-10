@@ -1,8 +1,10 @@
 # Test loading with struct python module
 
 import struct
+import pandas as pd
 from oscar_tools.oscar_data import OSCARSessionHeader, OSCARSession, \
     OSCARSessionData, OSCARSessionChannel, OSCARSessionEvent
+from oscar_tools.schema import *
 
 
 # OSCAR -- Session::LoadEvents(QString filename)
@@ -101,7 +103,7 @@ def read_channel_data(buffer, position, data_data, channel_num):
             position, data2 = unpack(buffer, 'h'*event_data.evcount, position)
             event_data.data2 = list(data2)
         if event_data.t8 != 0:
-            position, time_data = unpack(buffer, 'i' * event_data.evcount, position)
+            position, time_data = unpack(buffer, 'I' * event_data.evcount, position)
             event_data.time = list(time_data)
     return position, channel_data
 
@@ -166,8 +168,28 @@ def read_session(buffer, position):
 
 
 def get_channel_from_code(oscar_session_data, channelID):
-    list_result =  [item for item in oscar_session_data.data.channels if item.code == channelID.value]
+    list_result =  [item for item in oscar_session_data.data.channels if item.code == channelID]
     if len(list_result) > 0:
         return list_result[0]
     else:
-        return list_result
+        print('No channel for', channelID)
+        return None
+
+def event_data_to_dataframe(oscar_session_data, channelID):
+    channel = get_channel_from_code(oscar_session_data, channelID)
+    y_col_name = [c[5] for c in CHANNELS if c[1].value == channelID][0]
+    if channel is not None:
+        gain = channel.events[0].gain
+        if channel.events[0].t8 == 0:
+            channel.events[0].time = range(0, channel.events[0].evcount * int(channel.events[0].rate),
+                                           int(channel.events[0].rate))
+        df = pd.DataFrame(data={'time': channel.events[0].time,
+                                'data': channel.events[0].data})
+        df[y_col_name] = df['data'] * gain
+        df['time_absolute'] = df['time'] + channel.events[0].ts1
+        df['time_absolute'] = pd.to_datetime(df['time_absolute'], unit='ms')
+
+    else:
+        df = pd.DataFrame(data={'time_absolute': [],
+                                y_col_name: []})
+    return df

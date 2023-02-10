@@ -1,6 +1,8 @@
 from unittest import TestCase
+from datetime import datetime
+
 from dataclasses import asdict
-from oscar_tools.oscar_loader import read_session, load_session, get_channel_from_code
+from oscar_tools.oscar_loader import read_session, load_session, get_channel_from_code, event_data_to_dataframe
 from oscar_tools.schema import *
 
 
@@ -75,8 +77,16 @@ class TestOscarSessionLoader(TestCase):
     def test_get_channel_from_code(self):
         filename = '../data/63c6e928.001'
         oscar_session_data = load_session(filename)
-        real_channel = get_channel_from_code(oscar_session_data, ChannelID.CPAP_Te)
+        real_channel = get_channel_from_code(oscar_session_data, ChannelID.CPAP_Te.value)
         expected_channel = oscar_session_data.data.channels[0]
 
         self.assertEqual(expected_channel, real_channel)
+
+    def test_data_to_dataframe(self):
+        filename = '../data/63c6e928.001'
+        oscar_session_data = load_session(filename)
+        df = event_data_to_dataframe(oscar_session_data, 4362)
+
+        self.assertEqual(26*0.019999999552965164, df.loc[0, 'Te'])
+        self.assertEqual(datetime.strptime('2023-01-17 18:30:05.440','%Y-%m-%d %H:%M:%S.%f'), df.loc[0, 'time_absolute'])
 

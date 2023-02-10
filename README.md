@@ -18,8 +18,8 @@ At the moment, this is a first Proof of concept to read session files (.001 file
 
 ![image](oscar_format.drawio.png)
 
-## Result (one chanel)
+## Visualisation
 
-Here the result of the first channel/event ploted with plotly
+A little Dash application is used to visualize data
 
-![image](plotExpiratoryTime.png)
+![image](dash_visualisation.png)
