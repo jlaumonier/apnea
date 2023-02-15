@@ -186,6 +186,12 @@ def event_data_to_dataframe(oscar_session_data, channelID):
         df = pd.DataFrame(data={'time': channel.events[0].time,
                                 'data': channel.events[0].data})
         df[y_col_name] = df['data'] * gain
+
+        if channel.events[0].second_field:
+            # not tested because do not have 2nd field in files
+            df['data2'] = channel.events[0].data2
+            df[y_col_name+'2'] = df['data2'] * gain
+
         df['time_absolute'] = df['time'] + channel.events[0].ts1
         df['time_absolute'] = pd.to_datetime(df['time_absolute'], unit='ms')
 

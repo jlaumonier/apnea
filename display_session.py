@@ -46,6 +46,8 @@ def update_output(value_channel, value_file):
     df = event_data_to_dataframe(oscar_session_data, value_channel)
     if df is not None:
         fig = px.line(df, x="time_absolute", y=label)
+        if label+'2' in df.columns.to_list():
+            fig.add_scatter(df, x=df["time_absolute"], y=[label+'2'], mode='lines')
         return fig
     else:
         print('No data')
