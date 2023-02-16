@@ -2,3 +2,7 @@ wheel
 plotly
 pandas
 dash
+kaleido
+scikit-learn
+statsmodels
+matplotlib
