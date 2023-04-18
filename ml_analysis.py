@@ -3,14 +3,12 @@ import os
 from sklearn import metrics
 from math import sqrt
 import plotly.express as px
-import matplotlib.pyplot as plt
-from statsmodels.graphics.tsaplots import plot_acf
-from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import pandas as pd
 
-from oscar_tools.oscar_loader import load_session, event_data_to_dataframe
-from oscar_tools.schema import ChannelID, CHANNELS
+from pyapnea.oscar.oscar_loader import load_session
+from pyapnea.oscar.oscar_getter import event_data_to_dataframe
+from pyapnea.oscar.oscar_constants import *
 
 data_path = 'data/'
 filename = '63c6e928.001'

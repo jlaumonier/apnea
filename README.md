@@ -1,7 +1,7 @@
 # Apnea
-Studying and analyzing CPAP and other apnea data from OSCAR application 
+Studying and analyzing CPAP and other apnea data from OSCAR application. 
 
-The objective here is to provide tools to read OSCAR data to be used in machine learning tools.
+This code use the new python package pyapnea (https://pypi.org/project/pyapnea/)
 
 ## Requirements 
 (outside requirements.txt)

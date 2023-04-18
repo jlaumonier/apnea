@@ -1,4 +1,5 @@
 wheel
+pyapnea
 plotly
 pandas
 dash

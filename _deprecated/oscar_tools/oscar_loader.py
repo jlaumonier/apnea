@@ -2,9 +2,8 @@
 
 import struct
 import pandas as pd
-from oscar_tools.oscar_data import OSCARSessionHeader, OSCARSession, \
+from _deprecated.oscar_tools.oscar_data import OSCARSessionHeader, OSCARSession, \
     OSCARSessionData, OSCARSessionChannel, OSCARSessionEvent
-from oscar_tools.schema import *
 
 
 # OSCAR -- Session::LoadEvents(QString filename)

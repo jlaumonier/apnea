@@ -2,9 +2,7 @@ from unittest import TestCase
 from datetime import datetime
 
 from dataclasses import asdict
-from oscar_tools.oscar_loader import read_session, load_session, get_channel_from_code, event_data_to_dataframe
-from oscar_tools.schema import *
-
+from _deprecated.oscar_tools import read_session, load_session, get_channel_from_code, event_data_to_dataframe
 
 expected_oscar_data_dict = {'header': {'magicnumber': 3341948587,
                           'version': 10,
@@ -67,7 +65,7 @@ class TestOscarSessionLoader(TestCase):
         self.assertDictEqual(expected_oscar_data_dict, oscar_session_data_dict)
 
     def test_read_session(self):
-        filename = '../data/63c6e928.001'
+        filename = '../../data/63c6e928.001'
         with open(filename, mode='rb') as file:  # b is important -> binary
             data = file.read()
             position = 0
@@ -75,7 +73,7 @@ class TestOscarSessionLoader(TestCase):
             self._test(oscar_session_data)
 
     def test_get_channel_from_code(self):
-        filename = '../data/63c6e928.001'
+        filename = '../../data/63c6e928.001'
         oscar_session_data = load_session(filename)
         real_channel = get_channel_from_code(oscar_session_data, ChannelID.CPAP_Te.value)
         expected_channel = oscar_session_data.data.channels[0]
@@ -83,7 +81,7 @@ class TestOscarSessionLoader(TestCase):
         self.assertEqual(expected_channel, real_channel)
 
     def test_data_to_dataframe(self):
-        filename = '../data/63c6e928.001'
+        filename = '../../data/63c6e928.001'
         oscar_session_data = load_session(filename)
         df = event_data_to_dataframe(oscar_session_data, 4362)
 

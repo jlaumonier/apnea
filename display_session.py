@@ -6,8 +6,9 @@ from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import plotly.express as px
 
-from oscar_tools.oscar_loader import load_session, event_data_to_dataframe
-from oscar_tools.schema import *
+from pyapnea.oscar.oscar_loader import load_session
+from pyapnea.oscar.oscar_getter import event_data_to_dataframe
+from pyapnea.oscar.oscar_constants import *
 
 app = Dash(__name__)
 

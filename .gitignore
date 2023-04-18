@@ -127,4 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/oscar_tools/.$oscar_format.drawio.bkp
+/_deprecated/oscar_tools/.$oscar_format.drawio.bkp
