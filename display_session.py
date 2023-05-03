@@ -2,7 +2,8 @@ import os.path
 from os import listdir, path
 from os.path import isfile, join
 
-from dash import Dash, html, dcc
+import pandas as pd
+from dash import Dash, html, dcc, dash_table
 from dash.dependencies import Input, Output
 import plotly.express as px
 
@@ -12,17 +13,43 @@ from pyapnea.oscar.oscar_constants import *
 
 app = Dash(__name__)
 
-data_path = 'data/'
+#data_path = 'data/'
+# TODO Rethink of date source
+data_path = '/home/julien/OSCAR/Profiles/Julien/ResMed_23221085377/Events'
 list_files = [{'label': f, 'value': f} for f in listdir(data_path) if isfile(join(data_path, f))]
 
 list_channel_options = []
 
+# read all files
+global_df = pd.DataFrame(columns=['Col1'])
+for f in list_files:
+    oscar_session_data = load_session(os.path.join(data_path, f['value']))
+    list_existing_channel_options = [channel.code for channel in oscar_session_data.data.channels]
+    if ChannelID.CPAP_Obstructive.value in list_existing_channel_options:
+        df = event_data_to_dataframe(oscar_session_data, ChannelID.CPAP_Obstructive.value)
+        if global_df.empty:
+            global_df = df
+        else:
+            global_df = pd.concat([global_df, df])
+
+# change UTC to own local time - TODO should be in PyApnea
+global_df['time_absolute'] = global_df['time_absolute'].dt.tz_localize('UTC')
+global_df['local_time'] = global_df['time_absolute'].dt.tz_convert('America/Montreal')
+global_df['hour'] = global_df['local_time'].dt.hour
+
+fig_freq_hour = px.histogram(global_df, x="hour")
+
 app.layout = html.Div(children=[
     html.H1(children='Oscar Apnea data visualization'),
+    dash_table.DataTable(global_df.to_dict(orient='records'), [{"name": i, "id": i} for i in global_df.columns]),
+    dcc.Graph(figure=fig_freq_hour),
     dcc.Dropdown(options=list_files, value=list_files[0]['value'], id='list_files'),
     dcc.Dropdown(options=list_channel_options, value=ChannelID.CPAP_Pressure.value, id='list_channel'),
     dcc.Graph(id='graph-data')
 ])
+
+
+
 
 @app.callback(
     Output(component_id='list_channel', component_property='options'),
