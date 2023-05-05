@@ -10,7 +10,7 @@ from pyapnea.oscar.oscar_loader import load_session
 from pyapnea.oscar.oscar_getter import event_data_to_dataframe
 from pyapnea.oscar.oscar_constants import *
 
-data_path = 'data/'
+data_path = '../data/'
 filename = '63c6e928.001'
 value_channel = ChannelID.CPAP_FlowRate.value
 oscar_session_data = load_session(os.path.join(data_path, filename))
