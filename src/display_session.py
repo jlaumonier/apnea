@@ -15,7 +15,8 @@ app = Dash(__name__)
 
 #data_path = 'data/'
 # TODO Rethink of date source
-data_path = '/home/julien/Documents/oscar_data/Profiles/Julien/ResMed_23221085377/Events'
+#data_path = '/home/julien/Documents/oscar_data/Profiles/Julien/ResMed_23221085377/Events'
+data_path = '/home/julien/Documents/OSCAR_Data-master/Profiles/Julien/ResMed_23221085377/Events'
 list_files = [{'label': f, 'value': f} for f in listdir(data_path) if isfile(join(data_path, f))]
 
 list_channel_options = []
