@@ -130,3 +130,4 @@ dmypy.json
 /_deprecated/oscar_tools/.$oscar_format.drawio.bkp
 
 .idea/
+/data/raw/
