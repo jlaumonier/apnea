@@ -7,3 +7,4 @@ kaleido
 scikit-learn
 statsmodels
 matplotlib
+dvc[ssh]
