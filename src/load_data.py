@@ -15,6 +15,8 @@ from pyapnea.oscar.oscar_loader import load_session
 from pyapnea.oscar.oscar_getter import event_data_to_dataframe, get_channel_from_code
 from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
 
+from src.data.preparation_tasks import align_channels
+
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
 class OscarDataset(Dataset):
 
@@ -33,7 +35,6 @@ class OscarDataset(Dataset):
     def __getitem__(self, idx):
         oscar_session_data = load_session(self.list_files[idx]['fullpath'])
         df = event_data_to_dataframe(oscar_session_data, [ChannelID.CPAP_FlowRate.value,
-                                                          ChannelID.CPAP_ClearAirway.value,
                                                           ChannelID.CPAP_Obstructive.value])
 
         if 'Obstructive' not in df.columns:
