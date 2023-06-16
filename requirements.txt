@@ -10,3 +10,4 @@ matplotlib
 dvc[ssh]
 mne
 torch
+poutyne
