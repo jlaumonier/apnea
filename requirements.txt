@@ -11,3 +11,5 @@ dvc[ssh]
 mne
 torch
 poutyne
+pyarrow
+tables

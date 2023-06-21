@@ -13,7 +13,12 @@ from pyapnea.oscar.oscar_constants import ChannelID
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
 class OscarDataset(Dataset):
 
-    def __init__(self):
+    def __init__(self, output_type = 'numpy'):
+        """
+
+        :param output_type: 'numpy' or 'dataframe'
+        """
+        self.output_type = output_type
         data_path_cpap1 = '../data/raw/ResMed_23192565579/Events'
         data_path_cpap2 = '../data/raw/ResMed_23221085377/Events'
         self.list_files = [{'label': f, 'value': f, 'fullpath': join(data_path_cpap1, f)} for f in
@@ -23,10 +28,13 @@ class OscarDataset(Dataset):
             [{'label': f, 'value': f, 'fullpath': join(data_path_cpap2, f)} for f in listdir(data_path_cpap2) if
              isfile(join(data_path_cpap2, f))])
 
+        #self.list_files = self.list_files[:2]
+
     def __len__(self):
         return len(self.list_files)
 
     def __getitem__(self, idx):
+        result = None
         oscar_session_data = load_session(self.list_files[idx]['fullpath'])
         df = event_data_to_dataframe(oscar_session_data, [ChannelID.CPAP_FlowRate.value,
                                                           ChannelID.CPAP_Obstructive.value])
@@ -34,9 +42,14 @@ class OscarDataset(Dataset):
         if 'Obstructive' not in df.columns:
             df['Obstructive'] = 0.0
 
-        df_annotation = df[['time_utc', 'Obstructive']].copy()
-        df_annotation['Obstructive'] = df_annotation['Obstructive'].apply(lambda x: 1 if not pd.isnull(x) else np.nan)
-        df_annotation['Obstructive'].fillna(0, inplace=True)
+        df =  df[['time_utc', 'FlowRate', 'Obstructive']]
+        df['Obstructive'] = df['Obstructive'].apply(lambda x: 1 if not pd.isnull(x) else np.nan)
+        df['Obstructive'].fillna(0, inplace=True)
 
         # assert len(df['FlowRate'] == len(df_annotation['Obstructive']))
-        return df[['FlowRate']].to_numpy(), df_annotation[['Obstructive']].to_numpy()
+        if self.output_type == 'numpy':
+            result = df[['FlowRate']].to_numpy(), df[['Obstructive']].to_numpy()
+        if self.output_type == 'dataframe':
+            df.set_index('time_utc')
+            result = df
+        return result
