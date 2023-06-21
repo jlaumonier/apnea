@@ -29,3 +29,31 @@ def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel:
         result_df[c] = result_df[c+'_x'].combine_first(result_df[c+'_y'])
         result_df.drop([c+'_x', c+'_y'], axis=1, inplace=True)
     return result_df
+
+
+# thanks aneroid - I don't understand that, in 2023, this function is not included in pandas !
+# https://stackoverflow.com/questions/66482997/pandas-sliding-window-over-a-dataframe-column
+def _sliding_window_iter(df, length, keep_last_incomplete):
+    if len(df) % length == 0 or not keep_last_incomplete:
+        # if there is no last incomplete or if we do not want to keep it
+        max_range = len(df) - length + 1
+    else:
+        # there is last incomplete and we do want to keep it
+        max_range = len(df) - length + 2
+    for start_row in range(0, max_range, length):
+        yield df[start_row:start_row + length]
+
+
+def generate_rolling_window_dataframes(df: pd.DataFrame,
+                                       length: int,
+                                       keep_last_incomplete=True) -> list[pd.DataFrame]:
+    """
+    This method generates subsets of the original dataset, with fixed length, using sliding window.
+    Does not support overlap yet.
+    :param df: original dataframe
+    :param length: length of all the subsets in points
+    :param keep_last_incomplete: True to keep the last incomplete slice (with len<lentgth) if it exists
+    :return: a list of dataframes containing each window
+    """
+    result = [d for d in _sliding_window_iter(df, length, keep_last_incomplete)]
+    return result
