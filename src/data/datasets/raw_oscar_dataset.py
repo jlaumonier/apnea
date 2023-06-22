@@ -11,7 +11,7 @@ from pyapnea.oscar.oscar_constants import ChannelID
 
 
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
-class OscarDataset(Dataset):
+class RawOscarDataset(Dataset):
 
     def __init__(self, output_type = 'numpy'):
         """
