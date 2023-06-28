@@ -3,7 +3,8 @@ import random
 import numpy as np
 import pandas as pd
 
-from src.data.preparation_tasks import align_channels, generate_rolling_window_dataframes
+from src.data.preparation_tasks import align_channels, \
+    generate_rolling_window_dataframes, generate_annotations
 
 
 def test_align_channels_non_aligned():
@@ -133,3 +134,46 @@ def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     assert len(list_result_df[3]) == 2
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[3].loc['2019-01-01 00:00:07', 'value'] == 8
+
+
+def test_generate_annotation_keep():
+    np.random.seed(10)
+
+    rows, cols = 9, 1
+    data = np.random.randint(0, 2, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['Obstructive'], index=tidx)
+
+    result_df = generate_annotations(original_df)
+
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
+    assert (result_df['Obstructive'].equals(original_df['Obstructive']))
+
+def test_generate_annotation_1_nan():
+    np.random.seed(10)
+
+    rows, cols = 6, 1
+    data = [np.nan, 10, np.nan, np.nan, 0.5, np.nan]
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['Obstructive'], index=tidx)
+
+    result_df = generate_annotations(original_df)
+
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
+    assert not (result_df['Obstructive'].equals(original_df['Obstructive']))
+
+def test_generate_annotation_no_obstructive():
+    np.random.seed(10)
+
+    rows, cols = 6, 1
+    data = np.random.randint(0, 2, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['FlowRate'], index=tidx)
+
+    result_df = generate_annotations(original_df)
+
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
+    assert (result_df['Obstructive'].to_list() == ([0.0]*rows))

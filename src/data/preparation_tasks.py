@@ -1,4 +1,9 @@
+import os
+from tqdm import tqdm
+
 import pandas as pd
+import numpy as np
+from torch.utils.data import Dataset
 
 
 def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel: str) -> pd.DataFrame:
@@ -56,4 +61,33 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     :return: a list of dataframes containing each window
     """
     result = [d for d in _sliding_window_iter(df, length, keep_last_incomplete)]
+    return result
+
+
+def generate_all_rolling_window(oscar_dataset: Dataset,
+                                output_dir_path: str,
+                                length: int,
+                                keep_last_incomplete=True,
+                                output_format = 'feather') -> None:
+    with tqdm(total=len(oscar_dataset), position=0, leave=False, colour='red', ncols=80) as pbar:
+        for idx_ts, ts in enumerate(oscar_dataset):
+            dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
+            output_dir = os.path.join(output_dir_path, output_format, 'df_'+str(idx_ts))
+            os.makedirs(output_dir, exist_ok=True)
+            with tqdm(total=len(dfs), position=1, leave=False, colour='green', ncols=80) as pbar2:
+                for idx_df, df in enumerate(dfs):
+                    df_name = 'df_'+str(idx_ts)+'_'+str(idx_df)
+                    #df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
+                    df.reset_index(inplace=True)
+                    df.to_feather(os.path.join(output_dir, df_name + '.feather'))
+                    pbar2.update(1)
+            pbar.update(1)
+
+def generate_annotations(df: pd.DataFrame):
+    result = df.copy()
+    if 'Obstructive' not in result.columns:
+        result['Obstructive'] = 0.0
+    else:
+        result['Obstructive'] = result['Obstructive'].apply(lambda x: 1 if not pd.isnull(x) else np.nan)
+        result['Obstructive'].fillna(0, inplace=True)
     return result
