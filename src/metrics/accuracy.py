@@ -13,6 +13,7 @@ def accuracy(pred: torch.Tensor,
     activation = LogSoftmax(dim=2)
     pred = activation(pred)
 
-    return acc(pred.transpose(-1, 1).to(device),
-               ground_truth.type(torch.LongTensor).to(device),
-               ignore_index=ignore_idx)
+    result = acc(pred.transpose(-1, 1).to(device),
+                 ground_truth.type(torch.LongTensor).to(device),
+                 ignore_index=ignore_idx)
+    return result

@@ -13,3 +13,6 @@ torch
 poutyne
 pyarrow
 tables
+tqdm
+numpy
+hydra

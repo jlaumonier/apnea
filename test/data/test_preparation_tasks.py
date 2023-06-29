@@ -1,5 +1,5 @@
 from datetime import datetime
-import random
+
 import numpy as np
 import pandas as pd
 
@@ -42,7 +42,7 @@ def test_align_channels_non_aligned_onw_raw_aligned():
 
 def test_align_channels_multiple_channels():
     idx = pd.date_range(start='2023-06-15 00:00:00', end='2023-06-15 00:00:00.3', freq='100ms')
-    initial_data = range(0, len(idx)*10, 10)
+    initial_data = range(0, len(idx) * 10, 10)
     df = pd.DataFrame(data=list(zip(idx, initial_data)), columns=['time_utc', 'col1'])
 
     new_rows = [[datetime(2023, 6, 15, 00, 00, 00, 70000), 1, 2],
@@ -61,6 +61,7 @@ def test_align_channels_multiple_channels():
                                                                              pd.Timestamp('2023-06-15 00:00:00.200000'),
                                                                              pd.Timestamp('2023-06-15 00:00:00.300000')]
 
+
 def test_generate_rolling_window_dataframes_perfect_df():
     np.random.seed(10)
     desired_len = 2
@@ -69,15 +70,16 @@ def test_generate_rolling_window_dataframes_perfect_df():
     data = np.random.randint(0, 100, size=(rows, cols))
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
-                                columns=['value'], index=tidx)
+                               columns=['value'], index=tidx)
 
     list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
 
-    assert type(list_result_df)==list
+    assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value'] == 73
+
 
 def test_generate_rolling_window_dataframes_multiple_columns():
     np.random.seed(10)
@@ -91,13 +93,14 @@ def test_generate_rolling_window_dataframes_multiple_columns():
 
     list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
 
-    assert type(list_result_df)==list
+    assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value1'] == 9
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value1'] == 62
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value2'] == 15
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value2'] == 33
+
 
 def test_generate_rolling_window_dataframes_incomplete_df_take_last():
     np.random.seed(10)
@@ -107,15 +110,16 @@ def test_generate_rolling_window_dataframes_incomplete_df_take_last():
     data = np.random.randint(0, 100, size=(rows, cols))
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
-                                columns=['value'], index=tidx)
+                               columns=['value'], index=tidx)
     list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
 
-    assert type(list_result_df)==list
+    assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
     assert len(list_result_df[4]) == 1
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value'] == 73
+
 
 def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     np.random.seed(10)
@@ -125,10 +129,10 @@ def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     data = np.random.randint(0, 100, size=(rows, cols))
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
-                                columns=['value'], index=tidx)
+                               columns=['value'], index=tidx)
     list_result_df = generate_rolling_window_dataframes(original_df, desired_len, keep_last_incomplete=False)
 
-    assert type(list_result_df)==list
+    assert type(list_result_df) == list
     assert len(list_result_df) == 4
     assert len(list_result_df[0]) == desired_len
     assert len(list_result_df[3]) == 2
@@ -147,8 +151,9 @@ def test_generate_annotation_keep():
 
     result_df = generate_annotations(original_df)
 
-    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
-    assert (result_df['Obstructive'].equals(original_df['Obstructive']))
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0) == len(result_df))
+    assert (result_df['Obstructive'].to_list() == original_df['Obstructive'].to_list())
+
 
 def test_generate_annotation_1_nan():
     np.random.seed(10)
@@ -161,8 +166,9 @@ def test_generate_annotation_1_nan():
 
     result_df = generate_annotations(original_df)
 
-    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0) == len(result_df))
     assert not (result_df['Obstructive'].equals(original_df['Obstructive']))
+
 
 def test_generate_annotation_no_obstructive():
     np.random.seed(10)
@@ -175,5 +181,35 @@ def test_generate_annotation_no_obstructive():
 
     result_df = generate_annotations(original_df)
 
-    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0)==len(result_df))
-    assert (result_df['Obstructive'].to_list() == ([0.0]*rows))
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0) == len(result_df))
+    assert (result_df['Obstructive'].to_list() == ([0.0] * rows))
+
+
+def test_generate_annotation_entire_event():
+    np.random.seed(10)
+
+    rows, cols = 20, 1
+    data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0]
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['Obstructive'], index=tidx)
+
+    result_df = generate_annotations(original_df, length_event='10S')
+
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0) == len(result_df))
+    assert (result_df['Obstructive'].to_list() == [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0])
+
+
+def test_generate_annotation_entire_event_size_lower():
+    np.random.seed(10)
+
+    rows, cols = 5, 1
+    data = [0, 0, 0, 23, 0]
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['Obstructive'], index=tidx)
+
+    result_df = generate_annotations(original_df, length_event='10S')
+
+    assert (result_df['Obstructive'].isin([0, 1]).sum(axis=0) == len(result_df))
+    assert (result_df['Obstructive'].to_list() == [1, 1, 1, 1, 0])

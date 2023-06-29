@@ -1,21 +1,15 @@
-from os import listdir, walk
-from os.path import isfile, join
 from glob import glob
+from os import walk
+from os.path import join
 
-from torch.utils.data import Dataset
-import numpy as np
 import pandas as pd
-
-from pyapnea.oscar.oscar_loader import load_session
-from pyapnea.oscar.oscar_getter import event_data_to_dataframe
-from pyapnea.oscar.oscar_constants import ChannelID
+from torch.utils.data import Dataset
 
 
 class ProcessedDataset(Dataset):
 
-    def __init__(self, output_type = 'numpy', limits=None):
+    def __init__(self, output_type='numpy', limits=None):
         """
-
         :param output_type: 'numpy' or 'dataframe'
         """
         self.output_type = output_type

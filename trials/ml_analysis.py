@@ -27,27 +27,27 @@ print(df.isna().sum())
 
 # predicting naive
 
-df[label+'_t-1'] = df[label].shift(1)
-df_naive = df[[label, label+'_t-1']][1:]
+df[label + '_t-1'] = df[label].shift(1)
+df_naive = df[[label, label + '_t-1']][1:]
 
 true = df_naive[label]
-prediction = df_naive[label+'_t-1']
-error = sqrt(metrics.mean_squared_error(true,prediction))
-print ('RMSE for Naive Method 1: ', error)
+prediction = df_naive[label + '_t-1']
+error = sqrt(metrics.mean_squared_error(true, prediction))
+print('RMSE for Naive Method 1: ', error)
 
-df[label+'_rm'] = df[label].rolling(3).mean().shift(1)
-df_naive = df[[label,label+'_rm']].dropna()
+df[label + '_rm'] = df[label].rolling(3).mean().shift(1)
+df_naive = df[[label, label + '_rm']].dropna()
 true = df_naive[label]
-prediction = df_naive[label+'_rm']
-error = sqrt(metrics.mean_squared_error(true,prediction))
-print ('RMSE for Naive Method 2: ', error)
+prediction = df_naive[label + '_rm']
+error = sqrt(metrics.mean_squared_error(true, prediction))
+print('RMSE for Naive Method 2: ', error)
 
-split = len(df) - int(0.2*len(df))
+split = len(df) - int(0.2 * len(df))
 train, test = df[label][0:split], df[label][split:]
 test_idx = df['time_absolute'][split:]
 
 # ARIMA
-model = SARIMAX(train.values, order=(5,1,0))
+model = SARIMAX(train.values, order=(5, 1, 0))
 model_fit = model.fit()
 
 # do not understand predict (start=len(test) ??)
@@ -60,5 +60,5 @@ fig1 = px.line(df, x="time_absolute", y=label)
 fig1.add_scatter(x=test_["time_absolute"], y=test_['predictions'], mode='lines')
 fig1.show()
 
-error = sqrt(metrics.mean_squared_error(test.values,predictions[0:len(test)]))
-print ('Test RMSE for SARIMAX: ', error)
+error = sqrt(metrics.mean_squared_error(test.values, predictions[0:len(test)]))
+print('Test RMSE for SARIMAX: ', error)

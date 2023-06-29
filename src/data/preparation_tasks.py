@@ -31,8 +31,8 @@ def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel:
                               tolerance=pd.Timedelta(period_ref_channel))
 
     for c in list_channels_to_align:
-        result_df[c] = result_df[c+'_x'].combine_first(result_df[c+'_y'])
-        result_df.drop([c+'_x', c+'_y'], axis=1, inplace=True)
+        result_df[c] = result_df[c + '_x'].combine_first(result_df[c + '_y'])
+        result_df.drop([c + '_x', c + '_y'], axis=1, inplace=True)
     return result_df
 
 
@@ -68,26 +68,39 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
                                 output_dir_path: str,
                                 length: int,
                                 keep_last_incomplete=True,
-                                output_format = 'feather') -> None:
+                                output_format='feather') -> None:
     with tqdm(total=len(oscar_dataset), position=0, leave=False, colour='red', ncols=80) as pbar:
         for idx_ts, ts in enumerate(oscar_dataset):
             dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
-            output_dir = os.path.join(output_dir_path, output_format, 'df_'+str(idx_ts))
+            output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
             os.makedirs(output_dir, exist_ok=True)
             with tqdm(total=len(dfs), position=1, leave=False, colour='green', ncols=80) as pbar2:
                 for idx_df, df in enumerate(dfs):
-                    df_name = 'df_'+str(idx_ts)+'_'+str(idx_df)
-                    #df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
+                    df_name = 'df_' + str(idx_ts) + '_' + str(idx_df)
+                    # df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
                     df.reset_index(inplace=True)
                     df.to_feather(os.path.join(output_dir, df_name + '.feather'))
                     pbar2.update(1)
             pbar.update(1)
 
-def generate_annotations(df: pd.DataFrame):
+
+def generate_annotations(df: pd.DataFrame, length_event=None):
+    """
+    Generate annotations from a dataframe containing annotation at one point only.
+    :param df: source dataframe used to generate annotation.
+    :param length_event: length of the events to complete annotations. format in Offset aliases. \
+     None for keeping annotation as-is (default).
+    """
     result = df.copy()
     if 'Obstructive' not in result.columns:
         result['Obstructive'] = 0.0
     else:
-        result['Obstructive'] = result['Obstructive'].apply(lambda x: 1 if not pd.isnull(x) else np.nan)
+        result['Obstructive'] = result['Obstructive'].apply(lambda x: 1 if (not pd.isnull(x)) and (x != 0) else np.nan)
         result['Obstructive'].fillna(0, inplace=True)
+        if length_event is not None:
+            list_index_annot = result.index[result['Obstructive'] == 1].tolist()
+            for annot_index in list_index_annot:
+                indexes = result.index[((result.index <= annot_index) &
+                                        (result.index >= (annot_index - pd.to_timedelta(length_event))))]
+                result.loc[indexes, 'Obstructive'] = 1
     return result

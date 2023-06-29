@@ -1,22 +1,24 @@
 import torch
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, pad_sequence
-import numpy as np
+from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
+
 
 # https://github.com/iid-ulaval/CCF-dataset/blob/main/experiment/src/data/collator/embedding_collator.py
 class TSCollator:
     """
     Time serie collator
     """
+
     def __init__(self,
                  padding_value: int = 0,
                  ):
         self.padding_value = padding_value
 
     def collate_batch(
-        self, batch):
+            self, batch):
         input_tensor, target_tensor, lengths = zip(*[(torch.Tensor(embeded_sequence), torch.Tensor(target),
-            len(embeded_sequence)
-        ) for (embeded_sequence, target) in sorted(batch, key=lambda x: len(x[0]), reverse=True) ])
+                                                      len(embeded_sequence)
+                                                      ) for (embeded_sequence, target) in
+                                                     sorted(batch, key=lambda x: len(x[0]), reverse=True)])
 
         lengths = torch.Tensor(lengths)
 
