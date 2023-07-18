@@ -15,4 +15,4 @@ pyarrow
 tables
 tqdm
 numpy
-hydra
+hydra-core
