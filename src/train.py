@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 from poutyne.framework import Model
 from torch.utils.data import DataLoader
+from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.ts_collator import TSCollator
@@ -20,7 +21,7 @@ def main(conf):
 
     batch_size = 2
 
-    processed_dataset = ProcessedDataset(output_type='numpy')
+    processed_dataset = ProcessedDataset(output_type='numpy', limits=100)
 
     col = TSCollator()
 
@@ -46,4 +47,5 @@ def main(conf):
 
 
 if __name__ == "__main__":
-    main()
+    with EmissionsTracker(output_dir='..') as tracker:
+        main()

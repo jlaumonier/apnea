@@ -1,4 +1,5 @@
 import hydra
+from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.preparation_tasks import generate_all_rolling_window
@@ -14,4 +15,5 @@ def main(conf):
 
 
 if __name__ == "__main__":
-    main()
+    with EmissionsTracker(output_dir='..') as tracker:
+        main()
