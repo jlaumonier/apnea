@@ -21,7 +21,7 @@ def main(conf):
 
     batch_size = 2
 
-    processed_dataset = ProcessedDataset(output_type='numpy', limits=100)
+    processed_dataset = ProcessedDataset(output_type='numpy')
 
     col = TSCollator()
 
