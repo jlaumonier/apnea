@@ -27,7 +27,7 @@ class ProcessedDataset(Dataset):
         result = None
         df = pd.read_feather(self.list_files[idx]['fullpath'])
         if self.output_type == 'numpy':
-            result = df[['FlowRate']].to_numpy(), df[['Obstructive']].to_numpy()
+            result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
         if self.output_type == 'dataframe':
             df.set_index('time_utc', inplace=True)
             df.drop('index', axis=1, errors='ignore', inplace=True)

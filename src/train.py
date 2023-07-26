@@ -19,7 +19,7 @@ def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = 2
+    batch_size = 32
 
     processed_dataset = ProcessedDataset(output_type='numpy')
 

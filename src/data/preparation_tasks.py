@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
 
+from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
+
 
 def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel: str) -> pd.DataFrame:
     """
@@ -84,23 +86,32 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
             pbar.update(1)
 
 
-def generate_annotations(df: pd.DataFrame, length_event=None):
+def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
     """
     Generate annotations from a dataframe containing annotation at one point only.
     :param df: source dataframe used to generate annotation.
     :param length_event: length of the events to complete annotations. format in Offset aliases. \
      None for keeping annotation as-is (default).
+    :param output_events_merge: list of ChannelID (not value of ChannelID) to merge to become the ApneaEvent. None for all apnea events
     """
     result = df.copy()
-    if 'Obstructive' not in result.columns:
-        result['Obstructive'] = 0.0
+    if output_events_merge:
+        possible_apnea_events = output_events_merge
     else:
-        result['Obstructive'] = result['Obstructive'].apply(lambda x: 1 if (not pd.isnull(x)) and (x != 0) else np.nan)
-        result['Obstructive'].fillna(0, inplace=True)
+        possible_apnea_events = [ChannelID.CPAP_ClearAirway, ChannelID.CPAP_Obstructive, ChannelID.CPAP_Hypopnea, ChannelID.CPAP_Apnea]
+    possible_apnea_events_str = [c[5] for c in CHANNELS if c[1] in possible_apnea_events]
+    events_in_origin = [i for i in result.columns if i in possible_apnea_events_str]
+    if len(events_in_origin) == 0:
+        result['ApneaEvent'] = 0.0
+    else:
+        result['ApneaEvent'] = result[events_in_origin].sum(axis=1)
+        result['ApneaEvent'] = result['ApneaEvent'].apply(lambda x: 1 if (not pd.isnull(x)) and (x != 0) else np.nan)
+        result['ApneaEvent'].fillna(0, inplace=True)
         if length_event is not None:
-            list_index_annot = result.index[result['Obstructive'] == 1].tolist()
+            list_index_annot = result.index[result['ApneaEvent'] == 1].tolist()
             for annot_index in list_index_annot:
                 indexes = result.index[((result.index <= annot_index) &
                                         (result.index >= (annot_index - pd.to_timedelta(length_event))))]
-                result.loc[indexes, 'Obstructive'] = 1
+                result.loc[indexes, 'ApneaEvent'] = 1
+
     return result

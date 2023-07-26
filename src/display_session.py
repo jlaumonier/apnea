@@ -19,7 +19,7 @@ with tqdm(total=len(processed_dataset), position=0, leave=False, colour='red', n
     for idx_df, df in enumerate(processed_dataset):
         index_dataset[str(df.index[0])] = idx_df
         df_annotation = get_annotations_ends(df)
-        df_annotation = df_annotation[['Obstructive']]
+        df_annotation = df_annotation[['ApneaEvent']]
         list_df_annot.append(df_annotation)
         pbar.update(1)
 
@@ -45,7 +45,7 @@ def df_to_fig(df: pd.DataFrame):
         secondary_y=False,
     )
     fig.add_trace(
-        go.Scatter(x=df.index, y=df['Obstructive'], name="Obstructive", mode='lines'),
+        go.Scatter(x=df.index, y=df['ApneaEvent'], name="ApneaEvent", mode='lines'),
         secondary_y=True,
     )
     fig.update_yaxes(range=[-1, 1], secondary_y=True)

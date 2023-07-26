@@ -14,8 +14,11 @@ from torch.utils.data import Dataset
 from src.data.preparation_tasks import generate_annotations
 
 
-# TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
+
 class RawBioPointDataset(Dataset):
+    """
+    Data to load file from Biopoint sensor : https://sifilabs.com/
+    """
 
     ORIG_FREC = {'ECG': 500,
              'EMG': 2000,
