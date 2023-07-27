@@ -13,7 +13,14 @@ def accuracy(pred: torch.Tensor,
     activation = LogSoftmax(dim=2)
     pred = activation(pred)
 
-    result = acc(pred.to(device),
-                 ground_truth.type(torch.LongTensor).to(device),
-                 ignore_index=ignore_idx)
-    return result
+    y_true = ground_truth.type(torch.LongTensor).to(device)
+    y_pred = pred.to(device)
+
+    weights = (y_true != ignore_idx).float()
+    num_labels = weights.sum()
+    acc_pred = (y_pred == y_true).float() * weights
+
+    acc_pred = acc_pred / num_labels
+
+    return acc_pred * 100
+

@@ -8,7 +8,7 @@ from src.data.datasets.processed_dataset import ProcessedDataset
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(conf):
 
-    processed_dataset = ProcessedDataset(output_type='dataframe', limits=None)
+    processed_dataset = ProcessedDataset(output_type='dataframe', limits=1000)
 
     stats = {'nb_files': len(processed_dataset)}
 
