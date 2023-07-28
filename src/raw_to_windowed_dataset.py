@@ -15,5 +15,5 @@ def main(conf):
 
 
 if __name__ == "__main__":
-    with EmissionsTracker(output_dir='..') as tracker:
+    with EmissionsTracker(output_dir='..', log_level='error') as tracker:
         main()

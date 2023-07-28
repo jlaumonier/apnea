@@ -1,5 +1,6 @@
 import os
 from tqdm import tqdm
+from p_tqdm import p_map
 
 import pandas as pd
 import numpy as np
@@ -53,7 +54,8 @@ def _sliding_window_iter(df, length, keep_last_incomplete):
 
 def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        length: int,
-                                       keep_last_incomplete=True) -> list[pd.DataFrame]:
+                                       keep_last_incomplete=True,
+                                       sort_index = False) -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
     Does not support overlap yet.
@@ -62,7 +64,11 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     :param keep_last_incomplete: True to keep the last incomplete slice (with len<lentgth) if it exists
     :return: a list of dataframes containing each window
     """
-    result = [d for d in _sliding_window_iter(df, length, keep_last_incomplete)]
+    if sort_index:
+        sorted_df = df.sort_index()
+    else:
+        sorted_df = df
+    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete)]
     return result
 
 
@@ -71,19 +77,18 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
                                 length: int,
                                 keep_last_incomplete=True,
                                 output_format='feather') -> None:
-    with tqdm(total=len(oscar_dataset), position=0, leave=False, colour='red', ncols=80) as pbar:
-        for idx_ts, ts in enumerate(oscar_dataset):
-            dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
-            output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
-            os.makedirs(output_dir, exist_ok=True)
-            with tqdm(total=len(dfs), position=1, leave=False, colour='green', ncols=80) as pbar2:
-                for idx_df, df in enumerate(dfs):
-                    df_name = 'df_' + str(idx_ts) + '_' + str(idx_df)
-                    # df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
-                    df.reset_index(inplace=True)
-                    df.to_feather(os.path.join(output_dir, df_name + '.feather'))
-                    pbar2.update(1)
-            pbar.update(1)
+
+    def  _process_element(idx_ts, ts):
+        dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
+        output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
+        os.makedirs(output_dir, exist_ok=True)
+        for idx_df, df in enumerate(dfs):
+            df_name = 'df_' + str(idx_ts) + '_' + str(idx_df)
+            # df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
+            df.reset_index(inplace=True)
+            df.to_feather(os.path.join(output_dir, df_name + '.feather'))
+
+    p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
 
 
 def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):

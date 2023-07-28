@@ -49,6 +49,12 @@ class RawOscarDataset(Dataset):
         df.set_index('time_utc', inplace=True)
         df = generate_annotations(df, length_event='10S', output_events_merge=self.output_events_merged)
 
+        if df['FlowRate'].isnull().values.any():
+            print('ERROR', idx)
+            print(df)
+        if df['ApneaEvent'].isnull().values.any():
+            print('ERROR 2', idx)
+
         if self.output_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
         if self.output_type == 'dataframe':

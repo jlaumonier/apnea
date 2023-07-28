@@ -142,6 +142,25 @@ def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     assert list_result_df[3].loc['2019-01-01 00:00:07', 'value'] == 8
 
 
+def test_generate_rolling_window_dataframes_index_not_ordered():
+    np.random.seed(10)
+    desired_len = 2
+
+    rows, cols = 10, 1
+    data = np.random.randint(0, 100, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['value'], index=tidx)
+    original_df = original_df.sample(frac=1.0)
+
+    list_result_df = generate_rolling_window_dataframes(original_df, desired_len, sort_index=True)
+
+    assert type(list_result_df) == list
+    assert len(list_result_df) == 5
+    assert len(list_result_df[0]) == desired_len
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
+    assert list_result_df[3].loc['2019-01-01 00:00:07', 'value'] == 8
+
 def test_generate_annotation_keep():
     np.random.seed(10)
 

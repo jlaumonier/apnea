@@ -11,6 +11,7 @@ class ProcessedDataset(Dataset):
     def __init__(self, output_type='numpy', limits=None):
         """
         :param output_type: 'numpy' or 'dataframe'
+        :param limits: slice to filter the dataset
         """
         self.output_type = output_type
         data_path = '../data/processing/windowed/feather/'
@@ -18,7 +19,7 @@ class ProcessedDataset(Dataset):
         self.list_files = [{'label': f, 'value': f, 'fullpath': f} for f in list_files]
 
         if limits is not None:
-            self.list_files = self.list_files[:limits]
+            self.list_files = self.list_files[limits]
 
     def __len__(self):
         return len(self.list_files)
@@ -26,6 +27,11 @@ class ProcessedDataset(Dataset):
     def __getitem__(self, idx):
         result = None
         df = pd.read_feather(self.list_files[idx]['fullpath'])
+        if df['FlowRate'].isnull().values.any():
+            print('ERROR', idx)
+            print(df)
+        if df['ApneaEvent'].isnull().values.any():
+            print('ERROR 2', idx)
         if self.output_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
         if self.output_type == 'dataframe':
