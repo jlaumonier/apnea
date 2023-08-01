@@ -27,11 +27,7 @@ class ProcessedDataset(Dataset):
     def __getitem__(self, idx):
         result = None
         df = pd.read_feather(self.list_files[idx]['fullpath'])
-        if df['FlowRate'].isnull().values.any():
-            print('ERROR', idx)
-            print(df)
-        if df['ApneaEvent'].isnull().values.any():
-            print('ERROR 2', idx)
+
         if self.output_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
         if self.output_type == 'dataframe':
