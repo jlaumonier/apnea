@@ -13,7 +13,7 @@ from src.data.preparation_tasks import generate_annotations
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
 class RawOscarDataset(Dataset):
 
-    def __init__(self, output_type='numpy', limits=None, output_events_merged:Optional[List[ChannelID]]=None):
+    def __init__(self, output_type='numpy', limits=None, output_events_merged: Optional[List[ChannelID]] = None):
         """
 
         :param output_type: 'numpy' or 'dataframe'
@@ -41,11 +41,14 @@ class RawOscarDataset(Dataset):
     def __getitem__(self, idx):
         result = None
         oscar_session_data = load_session(self.list_files[idx]['fullpath'])
-        df = event_data_to_dataframe(oscar_session_data, [ChannelID.CPAP_FlowRate.value,
-                                                          ChannelID.CPAP_Obstructive.value,  # Apnée obstructive
-                                                          ChannelID.CPAP_ClearAirway.value,  # Apnée centrale
-                                                          ChannelID.CPAP_Hypopnea.value,     # Hypopnée
-                                                          ChannelID.CPAP_Apnea.value])       # Non déterminé
+        df = event_data_to_dataframe(oscar_session_data,
+                                     [ChannelID.CPAP_FlowRate.value,
+                                      ChannelID.CPAP_Obstructive.value,  # Apnée obstructive
+                                      ChannelID.CPAP_ClearAirway.value,  # Apnée centrale
+                                      ChannelID.CPAP_Hypopnea.value,  # Hypopnée
+                                      ChannelID.CPAP_Apnea.value],  # Non déterminé
+                                    mis_value_strategy = {ChannelID.CPAP_FlowRate.value: 'ignore'})
+
         df.set_index('time_utc', inplace=True)
         df = generate_annotations(df, length_event='10S', output_events_merge=self.output_events_merged)
 

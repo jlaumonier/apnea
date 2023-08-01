@@ -37,10 +37,9 @@ def main(conf):
     batch_size = 32
 
     processed_dataset_complet = ProcessedDataset(output_type='dataframe')
-    err = processed_dataset_complet[31495]
     len_complete_dataset = len(processed_dataset_complet)
     # take only a subset of complete dataset
-    len_complete_dataset = int(len_complete_dataset * 0.1)
+    len_complete_dataset = int(len_complete_dataset * 1.0)
     percentage_split = (0.8, 0.1, 0.1)
     cumul_perc_split = np.cumsum(percentage_split)
 
