@@ -1,6 +1,7 @@
 defaults:
-  - _self_
   - data: default
+  - logs/local/default
+  - _self_
 
 hydra:
   run:

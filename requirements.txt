@@ -18,3 +18,5 @@ numpy
 hydra-core
 codecarbon
 p_tqdm
+mlflow
+tensorboard

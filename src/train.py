@@ -1,14 +1,17 @@
+import os
 from functools import partial
+from time import time
 
 import hydra
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from poutyne.framework import Model
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
+from poutyne import MLFlowLogger
+from poutyne.framework import Experiment
 
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.ts_collator import TSCollator
@@ -39,7 +42,7 @@ def main(conf):
     processed_dataset_complet = ProcessedDataset(output_type='dataframe')
     len_complete_dataset = len(processed_dataset_complet)
     # take only a subset of complete dataset
-    len_complete_dataset = int(len_complete_dataset * 1.0)
+    len_complete_dataset = int(len_complete_dataset * 0.01)
     percentage_split = (0.8, 0.1, 0.1)
     cumul_perc_split = np.cumsum(percentage_split)
 
@@ -59,6 +62,8 @@ def main(conf):
                               collate_fn=col.collate_batch, sampler=sampler_train)
     valid_loader = DataLoader(dataset=processed_dataset_valid, batch_size=batch_size,
                               collate_fn=col.collate_batch, sampler=sampler_valid)
+    test_loader = DataLoader(dataset=processed_dataset_test,  batch_size=batch_size,
+                             collate_fn=col.collate_batch)
 
     model = BasicLSTMModel()
     optimizer = optim.Adam(model.parameters())
@@ -67,11 +72,27 @@ def main(conf):
 
     accuracy_fn = partial(accuracy, device=device)
 
-    model = Model(model, optimizer, loss_fn, batch_metrics=[accuracy_fn], device=device)
+    num_epoch = 20
 
-    model.fit_generator(train_loader, valid_loader, epochs=20)
+    mlflow_logger = MLFlowLogger(experiment_name="experiment", tracking_uri=None, batch_granularity=True)
+    mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
-    model.evaluate_dataset(processed_dataset_test, batch_size=batch_size, collate_fn=col.collate_batch)
+    working_directory = os.path.join(os.getcwd(), conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])
+
+    exp = Experiment(directory=working_directory,
+                     network=model,
+                     device=device,
+                     logging=conf['logs']['local']['logging'],
+                     optimizer=optimizer,
+                     loss_function=loss_fn,
+                     batch_metrics=[accuracy_fn])
+
+    exp.train(train_generator=train_loader,
+              valid_generator=valid_loader,
+              epochs=num_epoch,
+              callbacks=[mlflow_logger])
+
+    exp.test(test_loader)
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 
