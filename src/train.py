@@ -12,6 +12,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 from poutyne import MLFlowLogger
 from poutyne.framework import Experiment
+from poutyne.framework.metrics import F1
 
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.ts_collator import TSCollator
@@ -42,7 +43,7 @@ def main(conf):
     processed_dataset_complet = ProcessedDataset(output_type='dataframe')
     len_complete_dataset = len(processed_dataset_complet)
     # take only a subset of complete dataset
-    len_complete_dataset = int(len_complete_dataset * 0.01)
+    len_complete_dataset = int(len_complete_dataset * 1.0)
     percentage_split = (0.8, 0.1, 0.1)
     cumul_perc_split = np.cumsum(percentage_split)
 
@@ -72,7 +73,7 @@ def main(conf):
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = 20
+    num_epoch = 2
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment", tracking_uri=None, batch_granularity=True)
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
@@ -93,6 +94,8 @@ def main(conf):
               callbacks=[mlflow_logger])
 
     exp.test(test_loader)
+
+
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 
