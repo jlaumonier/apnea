@@ -12,7 +12,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 from poutyne import MLFlowLogger
 from poutyne.framework import Experiment
-from poutyne.framework.metrics import F1
+from sklearn.metrics import confusion_matrix
 
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.ts_collator import TSCollator
@@ -32,6 +32,26 @@ def calculate_weights_dataset_balancing(dataset):
     sampler = WeightedRandomSampler(samples_weight_tensor, len(dataset))
     print('balancing dataset finished')
     return sampler
+
+def conf_mat(test_loader, model):
+    nb_classes = 2
+
+    y_pred = []
+    y_true = []
+
+    activation = nn.LogSoftmax(dim=2)
+
+    for inputs, classes in test_loader:
+        outputs = model(inputs)
+        outputs = activation(outputs)
+
+        # Append batch prediction results
+        y_pred.extend(outputs.cpu().detach().numpy().flatten())
+        y_true.extend(classes.cpu().detach().numpy().flatten()) # Save Truth
+
+    # Confusion matrix
+    conf_mat = confusion_matrix(y_true, y_pred)
+    print(conf_mat)
 
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
@@ -98,7 +118,11 @@ def main(conf):
 
     exp.test(test_loader)
 
+    print('confmat on valid')
+    conf_mat(valid_loader, model)
 
+    print('confmat on test')
+    conf_mat(test_loader, model)
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 
