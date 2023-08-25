@@ -33,6 +33,7 @@ def calculate_weights_dataset_balancing(dataset):
     print('balancing dataset finished')
     return sampler
 
+
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -75,7 +76,9 @@ def main(conf):
 
     num_epoch = 2
 
-    mlflow_logger = MLFlowLogger(experiment_name="experiment", tracking_uri=None, batch_granularity=True)
+    mlflow_logger = MLFlowLogger(experiment_name="experiment",
+                                 tracking_uri=conf["logs"]["logger"]['tracking_uri'],
+                                 batch_granularity=True)
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
     working_directory = os.path.join(os.getcwd(), conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])

@@ -1,3 +1,3 @@
-log_dir: 'log'
+log_dir: '../log'
 saving_dir: 'checkpoints'
 logging: true

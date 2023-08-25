@@ -1,8 +1,9 @@
 defaults:
   - data: default
   - logs/local/default
+  - logs/logger/mlflow
   - _self_
 
 hydra:
   run:
-    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: ../outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}

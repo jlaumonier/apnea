@@ -15,4 +15,4 @@ Testing data (in data/) is one nap I took (about 15 minutes). Not all events are
 
 A little Dash application is used to visualize data
 
-![image](dash_visualisation.png)
+![image](doc/dash_visualisation.png)
