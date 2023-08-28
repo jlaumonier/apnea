@@ -101,6 +101,7 @@ def main(conf):
                                  batch_granularity=True)
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
+    # TODo merge with hydra output dir
     working_directory = os.path.join(os.getcwd(), conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])
 
     exp = Experiment(directory=working_directory,

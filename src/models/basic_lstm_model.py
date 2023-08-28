@@ -10,9 +10,11 @@ class BasicLSTMModel(nn.Module):
         self.linear = nn.Linear(100, 1)
 
     def forward(self, input_):
+        # todo packed_pad_seq au lieu du collator
+
         lstm_output, _ = self.lstm(input_)
 
-        lstm_out, _ = pad_packed_sequence(lstm_output, batch_first=True)
+        lstm_out, _ = pad_packed_sequence(lstm_output, batch_first=True, padding_value=-100.0)
 
         output = self.linear(lstm_out)
 
