@@ -12,11 +12,13 @@ from torch.utils.data.sampler import WeightedRandomSampler
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 from poutyne import MLFlowLogger
 from poutyne.framework import Experiment
-from sklearn.metrics import confusion_matrix
+
 
 from src.data.datasets.processed_dataset import ProcessedDataset
+from src.data.datasets.pickle_dataset import PickleDataset
 from src.data.ts_collator import TSCollator
 from src.metrics.accuracy import accuracy
+from src.metrics.confusion_matrix import conf_mat
 from src.models.basic_lstm_model import BasicLSTMModel
 from src.data.utils import is_contain_event, get_nb_events
 
@@ -33,25 +35,7 @@ def calculate_weights_dataset_balancing(dataset):
     print('balancing dataset finished')
     return sampler
 
-def conf_mat(test_loader, model):
-    nb_classes = 2
 
-    y_pred = []
-    y_true = []
-
-    activation = nn.LogSoftmax(dim=2)
-
-    for inputs, classes in test_loader:
-        outputs = model(inputs)
-        outputs = activation(outputs)
-
-        # Append batch prediction results
-        y_pred.extend(outputs.cpu().detach().numpy().flatten())
-        y_true.extend(classes.cpu().detach().numpy().flatten()) # Save Truth
-
-    # Confusion matrix
-    conf_mat = confusion_matrix(y_true, y_pred)
-    print(conf_mat)
 
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
@@ -59,42 +43,46 @@ def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = 32
+    batch_size = 1
 
-    processed_dataset_complet = ProcessedDataset(output_type='dataframe')
+    processed_dataset_complet = PickleDataset(output_type='numpy')
     len_complete_dataset = len(processed_dataset_complet)
     # take only a subset of complete dataset
     len_complete_dataset = int(len_complete_dataset * 1.0)
-    percentage_split = (0.8, 0.1, 0.1)
+    #percentage_split = (0.8, 0.1, 0.1)
+    percentage_split = (1.0, 0, 0)
     cumul_perc_split = np.cumsum(percentage_split)
 
     idx_tvt_set = [int(i) for i in (cumul_perc_split * len_complete_dataset)]
     print(idx_tvt_set)
 
-    processed_dataset_train = ProcessedDataset(output_type='numpy', limits=slice(0,idx_tvt_set[0]))
-    sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
-    processed_dataset_valid = ProcessedDataset(output_type='numpy', limits=slice(idx_tvt_set[0]+1,idx_tvt_set[1]))
-    sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
-    processed_dataset_test = ProcessedDataset(output_type='numpy', limits=slice(idx_tvt_set[1]+1,idx_tvt_set[2]))
+    processed_dataset_train = PickleDataset(output_type='numpy', limits=slice(0,idx_tvt_set[0]))
+    # sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
+    # processed_dataset_valid = PickleDataset(output_type='numpy', limits=slice(idx_tvt_set[0]+1,idx_tvt_set[1]))
+    # sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
+    # processed_dataset_test = PickleDataset(output_type='numpy', limits=slice(idx_tvt_set[1]+1,idx_tvt_set[2]))
 
     col = TSCollator()
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
     train_loader = DataLoader(dataset=processed_dataset_train, batch_size=batch_size,
-                              collate_fn=col.collate_batch, sampler=sampler_train)
-    valid_loader = DataLoader(dataset=processed_dataset_valid, batch_size=batch_size,
-                              collate_fn=col.collate_batch, sampler=sampler_valid)
-    test_loader = DataLoader(dataset=processed_dataset_test,  batch_size=batch_size,
-                             collate_fn=col.collate_batch)
+                              collate_fn=col.collate_batch,
+                              #sampler=sampler_train
+                              )
+    # valid_loader = DataLoader(dataset=processed_dataset_valid, batch_size=batch_size,
+    #                           collate_fn=col.collate_batch, sampler=sampler_valid)
+    # test_loader = DataLoader(dataset=processed_dataset_test,  batch_size=batch_size,
+    #                          collate_fn=col.collate_batch)
 
     model = BasicLSTMModel()
     optimizer = optim.Adam(model.parameters())
 
-    loss_fn = nn.MSELoss()
+    #loss_fn = nn.MSELoss()
+    loss_fn = nn.CrossEntropyLoss()
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = 2
+    num_epoch = 100
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment",
                                  tracking_uri=conf["logs"]["logger"]['tracking_uri'],
@@ -113,17 +101,17 @@ def main(conf):
                      batch_metrics=[accuracy_fn])
 
     exp.train(train_generator=train_loader,
-              valid_generator=valid_loader,
+              valid_generator=train_loader,
               epochs=num_epoch,
               callbacks=[mlflow_logger])
 
-    exp.test(test_loader)
+    exp.test(train_loader)
 
     print('confmat on valid')
-    conf_mat(valid_loader, model)
+    conf_mat(train_loader, model, device)
 
     print('confmat on test')
-    conf_mat(test_loader, model)
+    conf_mat(train_loader, model, device)
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 

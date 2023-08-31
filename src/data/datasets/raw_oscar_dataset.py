@@ -50,6 +50,7 @@ class RawOscarDataset(Dataset):
                                     mis_value_strategy = {ChannelID.CPAP_FlowRate.value: 'ignore'})
 
         df.set_index('time_utc', inplace=True)
+        df.sort_index(inplace=True)
         df = generate_annotations(df, length_event='10S', output_events_merge=self.output_events_merged)
 
         if self.output_type == 'numpy':

@@ -14,7 +14,9 @@ class ProcessedDataset(Dataset):
         :param limits: slice to filter the dataset
         """
         self.output_type = output_type
-        data_path = '../data/processing/windowed/feather/'
+
+        #data_path = '../data/processing/windowed/feather/'
+        data_path = '../data/processing/overfitting/feather/'
         list_files = [y for x in walk(data_path) for y in glob(join(x[0], '*.feather'))]
         self.list_files = [{'label': f, 'value': f, 'fullpath': f} for f in list_files]
 

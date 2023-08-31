@@ -1,12 +1,15 @@
 import os
 from tqdm import tqdm
 from p_tqdm import p_map
+import pickle
+import random
 
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
 
 from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
+from .utils import get_nb_events
 
 
 def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel: str) -> pd.DataFrame:
@@ -89,6 +92,66 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
             df.to_feather(os.path.join(output_dir, df_name + '.feather'))
 
     p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
+
+
+def generate_pickle_dataset(oscar_dataset: Dataset,
+                            output_dir_path: str) -> None:
+    """
+    This method generates a piclke numpy dataset from windows feather dataset set as numpy
+    :param oscar_dataset: processed dataset with numpy output
+    :param output_dir_path: path of the pickle outputs
+    """
+
+    os.makedirs(output_dir_path, exist_ok=True)
+    output_file_inputs = os.path.join(output_dir_path, 'inputs.pkl')
+    output_file_gt = os.path.join(output_dir_path, 'gt.pkl')
+    inputs = []
+    ground_truths = []
+
+    for input, gt in tqdm(oscar_dataset):
+        inputs.append(input)
+        ground_truths.append(gt)
+
+    inputs = np.array(inputs)
+    ground_truths = np.array(ground_truths)
+
+    with open(output_file_inputs, 'wb') as f_input:
+        pickle.dump(inputs, f_input)
+    with open(output_file_gt, 'wb') as f_gt:
+        pickle.dump(ground_truths, f_gt)
+
+
+def generate_overfitting_dataset(oscar_dataset: Dataset,
+                                 output_dir_path: str,
+                                 output_format='feather',
+                                 size: int=5) -> None:
+    """
+    This method generates a processed feather dataset from windows feather dataset set dataframe output
+    :param oscar_dataset: processed dataset with datafrace output
+    :param output_dir_path: path of the feather outputs files
+    :param output_format: 'feather' only
+    :param size: size of number of positive class to choose. The number of negative class will be the same.
+    """
+
+    def  _process_element(idx_ts, ts):
+        output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
+        os.makedirs(output_dir, exist_ok=True)
+        df_name = 'df_' + str(idx_ts) + '_' + str(idx_ts)
+        ts.reset_index(inplace=True)
+        ts.to_feather(os.path.join(output_dir, df_name + '.feather'))
+
+    _, events = get_nb_events(oscar_dataset)
+    index_positive = [idx for idx, e in enumerate(events) if e == 1]
+    index_negative = [idx for idx, e in enumerate(events) if e == 0]
+    print(len(index_positive))
+    print(len(index_negative))
+    positive_choice = random.sample(index_positive, size)
+    negative_choice = random.sample(index_negative, size)
+
+    for idx_p in positive_choice:
+        _process_element(idx_p, oscar_dataset[idx_p])
+    for idx_n in negative_choice:
+        _process_element(idx_n, oscar_dataset[idx_n])
 
 
 def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
