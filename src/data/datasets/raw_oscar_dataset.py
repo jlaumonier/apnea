@@ -22,7 +22,7 @@ class RawOscarDataset(Dataset):
         :param output_events_merged: List of apnea events (ChannelID) to merge into the 'ApneaEvent' column, None means all apnea event types are merged
         """
         self.output_type = output_type
-        l=listdir(data_path)
+        #l=listdir(data_path)
         list_machines = [d for d in listdir(data_path) if isdir(os.path.join(data_path, d))]
         data_path_cpap = [os.path.join(data_path, d, 'Events') for d in list_machines]
         #data_path_cpap1 = '../data/raw/ResMed_23192565579/Events'

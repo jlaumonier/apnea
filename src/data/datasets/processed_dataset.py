@@ -29,6 +29,7 @@ class ProcessedDataset(Dataset):
     def __getitem__(self, idx):
         result = None
         df = pd.read_feather(self.list_files[idx]['fullpath'])
+        assert df['time_utc'].is_monotonic_increasing
 
         if self.output_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()

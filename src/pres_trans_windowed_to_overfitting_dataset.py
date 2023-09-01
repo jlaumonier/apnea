@@ -7,7 +7,8 @@ from src.data.preparation_tasks import generate_overfitting_dataset
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(conf):
-    oscar_dataset = ProcessedDataset(output_type='dataframe', limits=slice(0, 1000))
+    oscar_dataset = ProcessedDataset(data_path='../data/processing/windowed',
+                                     output_type='dataframe')
 
     output_directory = '../data/processing/overfitting/'
     generate_overfitting_dataset(oscar_dataset, output_directory)

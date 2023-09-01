@@ -7,7 +7,8 @@ from src.data.preparation_tasks import generate_all_rolling_window
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(conf):
-    oscar_dataset = RawOscarDataset(output_type='dataframe', limits=None)
+    oscar_dataset = RawOscarDataset(data_path='../data/raw/',
+                                    output_type='dataframe', limits=None)
     generate_all_rolling_window(oscar_dataset=oscar_dataset,
                                 length=500,
                                 keep_last_incomplete=False,

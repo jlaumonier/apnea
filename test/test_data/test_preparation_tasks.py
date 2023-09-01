@@ -1,3 +1,5 @@
+import os
+import shutil
 from datetime import datetime
 
 import numpy as np
@@ -284,8 +286,23 @@ def test_generate_annotation_multi_event_merge_some():
     assert (result_df['Hypopnea'].to_list() == original_df['Hypopnea'].to_list())
 
 def test_generate_all_rolling_window():
-    oscar_dataset = RawOscarDataset(data_path='../../data/raw', output_type='dataframe', limits=None)
+    os.makedirs('../data/temp', exist_ok=True)
+    oscar_dataset = RawOscarDataset(data_path='../data/raw', output_type='dataframe', limits=None)
+
     generate_all_rolling_window(oscar_dataset=oscar_dataset,
                                 length=500,
                                 keep_last_incomplete=False,
-                                output_dir_path='../../data/processing/windowed/')
+                                output_dir_path='../data/temp/processing/windowed/')
+
+    assert len(os.listdir("../data/temp/processing/windowed/feather")) == 1
+    assert len(os.listdir("../data/temp/processing/windowed/feather/df_0")) == 51
+
+    dfs_path = '../data/temp/processing/windowed/feather/df_0'
+    for filename in os.listdir(dfs_path):
+        df = pd.read_feather(os.path.join(dfs_path, filename))
+        assert 'time_utc' in df.keys()
+        assert 'FlowRate' in df.keys()
+        assert 'ApneaEvent' in df.keys()
+        assert df['time_utc'].is_monotonic_increasing
+
+    shutil.rmtree('../data/temp')

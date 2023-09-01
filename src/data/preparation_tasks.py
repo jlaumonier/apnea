@@ -91,6 +91,8 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
             df.reset_index(inplace=True)
             df.to_feather(os.path.join(output_dir, df_name + '.feather'))
 
+    # for idx_ts, ts in tqdm(enumerate(oscar_dataset), total=len(oscar_dataset)):
+    #     _process_element(idx_ts, ts)
     p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
 
 
