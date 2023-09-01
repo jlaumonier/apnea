@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 
 class ProcessedDataset(Dataset):
 
-    def __init__(self, output_type='numpy', limits=None):
+    def __init__(self, data_path, output_type='numpy', limits=None):
         """
         :param output_type: 'numpy' or 'dataframe'
         :param limits: slice to filter the dataset
@@ -16,7 +16,7 @@ class ProcessedDataset(Dataset):
         self.output_type = output_type
 
         #data_path = '../data/processing/windowed/feather/'
-        data_path = '../data/processing/overfitting/feather/'
+        #data_path = '../data/processing/overfitting/feather/'
         list_files = [y for x in walk(data_path) for y in glob(join(x[0], '*.feather'))]
         self.list_files = [{'label': f, 'value': f, 'fullpath': f} for f in list_files]
 

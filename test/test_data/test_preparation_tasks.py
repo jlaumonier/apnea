@@ -5,8 +5,9 @@ import pandas as pd
 
 from pyapnea.oscar.oscar_constants import ChannelID
 
+from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.preparation_tasks import align_channels, \
-    generate_rolling_window_dataframes, generate_annotations
+    generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window
 
 
 def test_align_channels_non_aligned():
@@ -281,3 +282,10 @@ def test_generate_annotation_multi_event_merge_some():
     assert (result_df['Obstructive'].to_list() == original_df['Obstructive'].to_list())
     assert (result_df['ClearAirway'].to_list() == original_df['ClearAirway'].to_list())
     assert (result_df['Hypopnea'].to_list() == original_df['Hypopnea'].to_list())
+
+def test_generate_all_rolling_window():
+    oscar_dataset = RawOscarDataset(data_path='../../data/raw', output_type='dataframe', limits=None)
+    generate_all_rolling_window(oscar_dataset=oscar_dataset,
+                                length=500,
+                                keep_last_incomplete=False,
+                                output_dir_path='../../data/processing/windowed/')

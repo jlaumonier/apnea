@@ -1,6 +1,7 @@
+import os.path
 from typing import List, Optional
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 
 from pyapnea.oscar.oscar_constants import ChannelID
 from pyapnea.oscar.oscar_getter import event_data_to_dataframe
@@ -13,7 +14,7 @@ from src.data.preparation_tasks import generate_annotations
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
 class RawOscarDataset(Dataset):
 
-    def __init__(self, output_type='numpy', limits=None, output_events_merged: Optional[List[ChannelID]] = None):
+    def __init__(self, data_path, output_type='numpy', limits=None, output_events_merged: Optional[List[ChannelID]] = None):
         """
 
         :param output_type: 'numpy' or 'dataframe'
@@ -21,14 +22,22 @@ class RawOscarDataset(Dataset):
         :param output_events_merged: List of apnea events (ChannelID) to merge into the 'ApneaEvent' column, None means all apnea event types are merged
         """
         self.output_type = output_type
-        data_path_cpap1 = '../data/raw/ResMed_23192565579/Events'
-        data_path_cpap2 = '../data/raw/ResMed_23221085377/Events'
+        l=listdir(data_path)
+        list_machines = [d for d in listdir(data_path) if isdir(os.path.join(data_path, d))]
+        data_path_cpap = [os.path.join(data_path, d, 'Events') for d in list_machines]
+        #data_path_cpap1 = '../data/raw/ResMed_23192565579/Events'
+        #data_path_cpap2 = '../data/raw/ResMed_23221085377/Events'
+        data_path_cpap1 = data_path_cpap[0]
         self.list_files = [{'label': f, 'value': f, 'fullpath': join(data_path_cpap1, f)} for f in
                            listdir(data_path_cpap1)
                            if isfile(join(data_path_cpap1, f))]
-        self.list_files.extend(
-            [{'label': f, 'value': f, 'fullpath': join(data_path_cpap2, f)} for f in listdir(data_path_cpap2) if
-             isfile(join(data_path_cpap2, f))])
+
+        if len(data_path_cpap) == 2:
+            data_path_cpap2 = data_path_cpap[1]
+
+            self.list_files.extend(
+                [{'label': f, 'value': f, 'fullpath': join(data_path_cpap2, f)} for f in listdir(data_path_cpap2) if
+                 isfile(join(data_path_cpap2, f))])
 
         if limits is not None:
             self.list_files = self.list_files[:limits]
