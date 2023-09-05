@@ -8,8 +8,10 @@ import pandas as pd
 from pyapnea.oscar.oscar_constants import ChannelID
 
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
+from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.preparation_tasks import align_channels, \
-    generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window
+    generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window, \
+    generate_overfitting_dataset
 
 
 def test_align_channels_non_aligned():
@@ -294,8 +296,9 @@ def test_generate_all_rolling_window():
                                 keep_last_incomplete=False,
                                 output_dir_path='../data/temp/processing/windowed/')
 
-    assert len(os.listdir("../data/temp/processing/windowed/feather")) == 1
+    assert len(os.listdir("../data/temp/processing/windowed/feather")) == 2
     assert len(os.listdir("../data/temp/processing/windowed/feather/df_0")) == 51
+    assert len(os.listdir("../data/processing/windowed/feather/df_1")) == 1443
 
     dfs_path = '../data/temp/processing/windowed/feather/df_0'
     for filename in os.listdir(dfs_path):
@@ -304,5 +307,19 @@ def test_generate_all_rolling_window():
         assert 'FlowRate' in df.keys()
         assert 'ApneaEvent' in df.keys()
         assert df['time_utc'].is_monotonic_increasing
+
+    shutil.rmtree('../data/temp')
+
+def test_generate_overfitting_dataset():
+    os.makedirs('../data/temp', exist_ok=True)
+
+    processed_dataset = ProcessedDataset(data_path='../data/processing/windowed', output_type='dataframe', limits=None)
+
+    generate_overfitting_dataset(oscar_dataset=processed_dataset,
+                                 output_format='feather',
+                                 size=1,
+                                 output_dir_path='../data/temp/processing/overfitting')
+
+    assert (len(os.listdir("../data/temp/processing/overfitting/feather/")) == 2)
 
     shutil.rmtree('../data/temp')

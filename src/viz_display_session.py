@@ -10,7 +10,7 @@ from src.data.utils import get_annotations_ends
 
 app = Dash(__name__)
 
-processed_dataset = ProcessedDataset(output_type='dataframe')
+processed_dataset = ProcessedDataset(data_path='../test/data/processing/', output_type='dataframe')
 # processed_dataset = RawOscarDataset(output_type='dataframe', limits=2)
 index_dataset = {}
 
