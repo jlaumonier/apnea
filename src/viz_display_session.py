@@ -6,12 +6,13 @@ from plotly.subplots import make_subplots
 from tqdm import tqdm
 
 from src.data.datasets.processed_dataset import ProcessedDataset
-from src.data.utils import get_annotations_ends
+from src.data.datasets.raw_oscar_dataset import RawOscarDataset
+from src.data.utils import get_annotations_ends#
 
 app = Dash(__name__)
 
 processed_dataset = ProcessedDataset(data_path='../test/data/processing/', output_type='dataframe')
-# processed_dataset = RawOscarDataset(output_type='dataframe', limits=2)
+#processed_dataset = RawOscarDataset(data_path='../test/data/raw/', output_type='dataframe')
 index_dataset = {}
 
 list_df_annot = []
@@ -34,6 +35,7 @@ app.layout = html.Div(children=[
     dcc.Dropdown(options=list_index_keys, value=list_index_keys[0], id='list_index'),
     dash_table.DataTable(df_annotations.to_dict(orient='records'),
                          [{"name": i, "id": i} for i in df_annotations.columns]),
+    dash_table.DataTable(id='df'),
     dcc.Graph(id='graph-data')
 ])
 
@@ -54,13 +56,19 @@ def df_to_fig(df: pd.DataFrame):
 
 @app.callback(
     Output(component_id='graph-data', component_property='figure'),
+    Output(component_id='df', component_property='data'),
+    Output(component_id='df', component_property='columns'),
     Input(component_id='list_index', component_property='value')
 )
 def update_output(index):
     session_id = index_dataset[index]
     df = processed_dataset[session_id]
     fig = df_to_fig(df)
-    return fig
+    df.reset_index(inplace=True)
+    data = df.to_dict(orient='records')
+    cols = [{"name": i, "id": i} for i in df.columns]
+
+    return fig, data, cols
 
 
 if __name__ == '__main__':

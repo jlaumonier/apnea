@@ -294,13 +294,13 @@ def test_generate_all_rolling_window():
     generate_all_rolling_window(oscar_dataset=oscar_dataset,
                                 length=500,
                                 keep_last_incomplete=False,
-                                output_dir_path='../data/temp/processing/windowed/')
+                                output_dir_path='../data/processing/windowed/')
 
-    assert len(os.listdir("../data/temp/processing/windowed/feather")) == 2
-    assert len(os.listdir("../data/temp/processing/windowed/feather/df_0")) == 51
+    assert len(os.listdir("../data/processing/windowed/feather")) == 2
+    assert len(os.listdir("../data/processing/windowed/feather/df_0")) == 51
     assert len(os.listdir("../data/processing/windowed/feather/df_1")) == 1443
 
-    dfs_path = '../data/temp/processing/windowed/feather/df_0'
+    dfs_path = '../data/processing/windowed/feather/df_0'
     for filename in os.listdir(dfs_path):
         df = pd.read_feather(os.path.join(dfs_path, filename))
         assert 'time_utc' in df.keys()
