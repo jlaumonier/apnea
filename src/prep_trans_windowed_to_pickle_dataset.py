@@ -7,7 +7,7 @@ from src.data.preparation_tasks import generate_pickle_dataset
 
 @hydra.main(config_path="../conf", config_name="config", version_base=None)
 def main(conf):
-    oscar_dataset = ProcessedDataset(data_path='../data/processing/windowed/',
+    oscar_dataset = ProcessedDataset(data_path='../data/processing/overfitting/',
                                      output_type='numpy', limits=None)
 
     output_directory = '../data/processing/pickle/'

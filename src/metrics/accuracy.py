@@ -1,5 +1,5 @@
 import torch
-from torch.nn import LogSoftmax
+
 from poutyne.framework.metrics import acc
 
 
@@ -11,8 +11,6 @@ def accuracy(pred: torch.Tensor,
     if isinstance(pred, tuple):
         pred = pred[0]
 
-    activation = LogSoftmax(dim=2)
-    pred = activation(pred)
 
 
 

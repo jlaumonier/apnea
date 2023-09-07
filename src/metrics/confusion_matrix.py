@@ -8,13 +8,10 @@ def conf_mat(test_loader, model, device):
     y_true = []
 
     device = 'cpu'
-    activation = nn.LogSoftmax(dim=2)
-    activation.to(device)
     model.to(device)
     for inputs, classes in test_loader:
         inputs.to(device)
         outputs = model(inputs)
-        outputs = activation(outputs)
 
         # Append batch prediction results
         y_pred.extend(outputs.to(device).detach().numpy().flatten())
