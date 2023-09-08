@@ -43,7 +43,7 @@ def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = 1
+    batch_size = 2
 
     processed_dataset_complet = PickleDataset(output_type='numpy')
     len_complete_dataset = len(processed_dataset_complet)
@@ -66,7 +66,7 @@ def main(conf):
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
     train_loader = DataLoader(dataset=processed_dataset_train, batch_size=batch_size,
-                              collate_fn=col.collate_batch,
+                              #collate_fn=col.collate_batch,
                               #sampler=sampler_train
                               )
     # valid_loader = DataLoader(dataset=processed_dataset_valid, batch_size=batch_size,
@@ -82,7 +82,7 @@ def main(conf):
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = 100
+    num_epoch = 1
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment",
                                  tracking_uri=conf["logs"]["logger"]['tracking_uri'],

@@ -11,9 +11,6 @@ def accuracy(pred: torch.Tensor,
     if isinstance(pred, tuple):
         pred = pred[0]
 
-
-
-
     y_true = ground_truth.type(torch.LongTensor).to(device)
     y_pred = pred.to(device)
 
