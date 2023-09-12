@@ -8,23 +8,25 @@ import torch
 class BasicLSTMModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=100, num_layers=1, batch_first=True)
-        self.linear = nn.Linear(100, 1)
-        self.sftmax = LogSoftmax(dim=2)
+        self.lstm = nn.LSTM(input_size=1, hidden_size=100, num_layers=10, batch_first=True)
+        self.fc1 = nn.Linear(100, 1)
         self.padding_value = -100.0
 
     def forward(self, input_):
-        print(input_.shape)
+
+        # print(input_.shape)
+        # print(input_.dtype)
 
         lengths = [len(embeded_sequence) for embeded_sequence in input_]
         lengths = torch.Tensor(lengths)
-        print(lengths.shape)
+        #print(lengths.shape)
 
         input_tensor = pad_sequence(input_,
                                     batch_first=True,
                                     padding_value=self.padding_value)
 
-        print(input_tensor.shape)
+        # print(input_tensor.shape)
+        # print(input_tensor.dtype)
 
         packed_input_tensor = pack_padded_sequence(input=input_tensor,
                                                    batch_first=True,
@@ -33,20 +35,19 @@ class BasicLSTMModel(nn.Module):
 
         lstm_output, _ = self.lstm(packed_input_tensor)
 
-        print(lstm_output.shape)
-
         lstm_out, _ = pad_packed_sequence(lstm_output,
                                           batch_first=True,
                                           padding_value=self.padding_value)
 
-        print(lstm_out.shape)
+        #print(lstm_out)
+        #print(lstm_out.shape)
+        # print(lstm_out.dtype)
 
-        lin_output = self.linear(lstm_out)
+        output = self.fc1(lstm_out)
 
-        print(lin_output.shape)
+        #print(lin_output)
+        # print(lin_output.shape)
+        # print(lin_output.dtype)
 
-        output = self.sftmax(lin_output)
-
-        print(output.shape)
 
         return output

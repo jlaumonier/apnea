@@ -1,7 +1,7 @@
 import pickle
 import os
 
-import pandas as pd
+import numpy as np
 from torch.utils.data import Dataset
 
 
@@ -29,5 +29,5 @@ class PickleDataset(Dataset):
         return len(self.ground_truths)
 
     def __getitem__(self, idx):
-        result = self.inputs[idx], self.ground_truths[idx]
+        result = np.float32(self.inputs[idx]), np.float32(self.ground_truths[idx])
         return result

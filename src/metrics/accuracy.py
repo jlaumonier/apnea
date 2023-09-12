@@ -12,7 +12,7 @@ def accuracy(pred: torch.Tensor,
         pred = pred[0]
 
     y_true = ground_truth.type(torch.LongTensor).to(device)
-    y_pred = pred.to(device)
+    y_pred = torch.round(pred.to(device))
 
     # From Poutyne - Maybe problems with Licencing. TODO rewrite!
 

@@ -75,22 +75,23 @@ def main(conf):
     #                          collate_fn=col.collate_batch)
 
     model = BasicLSTMModel()
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), lr=0.01)
 
-    #loss_fn = nn.MSELoss()
-    loss_fn = nn.CrossEntropyLoss()
+    loss_fn = nn.MSELoss()
+    #loss_fn = nn.CrossEntropyLoss()
+    #loss_fn = nn.NLLLoss(reduction='none')
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = 1
+    num_epoch = 100
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment",
                                  tracking_uri=conf["logs"]["logger"]['tracking_uri'],
                                  batch_granularity=True)
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
-    # TODo merge with hydra output dir
-    working_directory = os.path.join(os.getcwd(), conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])
+    hydra_output_path = hydra.core.hydra_config.HydraConfig.get()['runtime']['output_dir']
+    working_directory = os.path.join(os.getcwd(), hydra_output_path, conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])
 
     exp = Experiment(directory=working_directory,
                      network=model,
