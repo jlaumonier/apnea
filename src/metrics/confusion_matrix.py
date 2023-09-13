@@ -20,5 +20,8 @@ def conf_mat(test_loader, model, device):
             y_true.extend(classes.to(device).detach().numpy().flatten()) # Save Truth
 
     # Confusion matrix
+    set_pred = set(y_pred)
+    set_true = set(y_true)
     conf_mat = confusion_matrix(y_true, y_pred)
     print(conf_mat)
+    print('classes pred', set_pred, 'true', set_true)

@@ -43,7 +43,7 @@ def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = 2
+    batch_size = 1
 
     processed_dataset_complet = PickleDataset(output_type='numpy')
     len_complete_dataset = len(processed_dataset_complet)
@@ -75,7 +75,7 @@ def main(conf):
     #                          collate_fn=col.collate_batch)
 
     model = BasicLSTMModel()
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     loss_fn = nn.MSELoss()
     #loss_fn = nn.CrossEntropyLoss()
