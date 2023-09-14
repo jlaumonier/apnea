@@ -2,6 +2,8 @@ defaults:
   - data: default
   - logs/local/default
   - logs/logger/mlflow
+  - training/default
+  - training/split/default
   - _self_
 
 hydra:

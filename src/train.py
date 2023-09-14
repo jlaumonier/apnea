@@ -43,39 +43,25 @@ def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = 1
+    batch_size = conf['training']['batch_size']
 
-    processed_dataset_complet = PickleDataset(output_type='numpy')
-    len_complete_dataset = len(processed_dataset_complet)
-    # take only a subset of complete dataset
-    len_complete_dataset = int(len_complete_dataset * 1.0)
-    #percentage_split = (0.8, 0.1, 0.1)
-    percentage_split = (1.0, 0, 0)
-    cumul_perc_split = np.cumsum(percentage_split)
-
-    idx_tvt_set = [int(i) for i in (cumul_perc_split * len_complete_dataset)]
-    print(idx_tvt_set)
-
-    processed_dataset_train = PickleDataset(output_type='numpy', limits=slice(0,idx_tvt_set[0]))
     # sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
-    # processed_dataset_valid = PickleDataset(output_type='numpy', limits=slice(idx_tvt_set[0]+1,idx_tvt_set[1]))
     # sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
-    # processed_dataset_test = PickleDataset(output_type='numpy', limits=slice(idx_tvt_set[1]+1,idx_tvt_set[2]))
-
-    col = TSCollator()
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
-    train_loader = DataLoader(dataset=processed_dataset_train, batch_size=batch_size,
-                              #collate_fn=col.collate_batch,
+    train_loader = DataLoader(dataset=processed_dataset_train,
+                              batch_size=batch_size,
                               #sampler=sampler_train
                               )
-    # valid_loader = DataLoader(dataset=processed_dataset_valid, batch_size=batch_size,
-    #                           collate_fn=col.collate_batch, sampler=sampler_valid)
-    # test_loader = DataLoader(dataset=processed_dataset_test,  batch_size=batch_size,
-    #                          collate_fn=col.collate_batch)
+    valid_loader = DataLoader(dataset=processed_dataset_valid,
+                              batch_size=batch_size,
+                              sampler=sampler_valid)
+    test_loader = DataLoader(dataset=processed_dataset_test,
+                             batch_size=batch_size,
+                             collate_fn=col.collate_batch)
 
     model = BasicLSTMModel()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=conf['training']['initial_learning_rate'])
 
     loss_fn = nn.MSELoss()
     #loss_fn = nn.CrossEntropyLoss()
@@ -83,7 +69,7 @@ def main(conf):
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = 100
+    num_epoch = conf['training']['num_epochs']
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment",
                                  tracking_uri=conf["logs"]["logger"]['tracking_uri'],
@@ -91,7 +77,9 @@ def main(conf):
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
     hydra_output_path = hydra.core.hydra_config.HydraConfig.get()['runtime']['output_dir']
-    working_directory = os.path.join(os.getcwd(), hydra_output_path, conf["logs"]["local"]['log_dir'], conf["logs"]["local"]['saving_dir'])
+    working_directory = os.path.join(os.getcwd(),
+                                     hydra_output_path, conf["logs"]["local"]['log_dir'],
+                                     conf["logs"]["local"]['saving_dir'])
 
     exp = Experiment(directory=working_directory,
                      network=model,

@@ -9,6 +9,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
+from src.data.datasets.pickle_dataset import PickleDataset
 from .utils import get_nb_events
 
 
@@ -185,3 +186,34 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
                 result.loc[indexes, 'ApneaEvent'] = 1
 
     return result
+
+def split_dataset(oscar_dataset: Dataset,
+                  output_dir_path: str,
+                  train_ratio: float,
+                  valid_ratio: float):
+
+    len_complete_dataset = len(oscar_dataset)
+    # take only a subset of complete dataset
+    len_complete_dataset = int(len_complete_dataset * 1.0)
+    percentage_split = (train_ratio,
+                        valid_ratio,
+                        1 - train_ratio - valid_ratio)
+    cumul_perc_split = np.cumsum(percentage_split)
+
+    idx_tvt_set = [int(i) for i in (cumul_perc_split * len_complete_dataset)]
+    print(idx_tvt_set)
+
+    split_dataset_train = PickleDataset(output_type='numpy',
+                                        limits=slice(0, idx_tvt_set[0]),
+                                        src_data_path='../data/processing/pickle/')
+    split_dataset_valid = PickleDataset(output_type='numpy',
+                                        limits=slice(idx_tvt_set[0] + 1, idx_tvt_set[1]),
+                                        src_data_path='../data/processing/pickle/'
+                                        )
+    split_dataset_test = PickleDataset(output_type='numpy',
+                                       limits=slice(idx_tvt_set[1] + 1, idx_tvt_set[2]),
+                                       src_data_path='../data/processing/pickle/')
+
+    generate_pickle_dataset(split_dataset_train, os.path.join(output_dir_path, 'train'))
+    generate_pickle_dataset(split_dataset_valid, os.path.join(output_dir_path, 'valid'))
+    generate_pickle_dataset(split_dataset_test, os.path.join(output_dir_path, 'test'))
