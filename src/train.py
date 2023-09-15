@@ -38,7 +38,7 @@ def calculate_weights_dataset_balancing(dataset):
 
 
 
-@hydra.main(config_path="../conf", config_name="config", version_base=None)
+@hydra.main(config_path="../conf", config_name="training", version_base=None)
 def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)

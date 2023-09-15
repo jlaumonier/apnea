@@ -1,0 +1,11 @@
+defaults:
+  - global/logs/local/default
+  - global/logs/logger/mlflow
+  - pipeline/training/dataset: default
+  - pipeline/training: default
+  - pipeline/training/split : default
+  - _self_
+
+hydra:
+  run:
+    dir: ../outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
