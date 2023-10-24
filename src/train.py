@@ -38,15 +38,19 @@ def calculate_weights_dataset_balancing(dataset):
 
 
 
-@hydra.main(config_path="../conf", config_name="training", version_base=None)
+@hydra.main(config_path="../conf", config_name="training-pipeline", version_base=None)
 def main(conf):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
 
-    batch_size = conf['training']['batch_size']
+    batch_size = conf['pipeline']['training']['batch_size']
 
     # sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
     # sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
+
+    processed_dataset_train = PickleDataset(src_data_path='../data/processing/split/train')
+    processed_dataset_valid = PickleDataset(src_data_path='../data/processing/split/valid')
+    processed_dataset_test = PickleDataset(src_data_path='../data/processing/split/test')
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
     train_loader = DataLoader(dataset=processed_dataset_train,
@@ -55,36 +59,36 @@ def main(conf):
                               )
     valid_loader = DataLoader(dataset=processed_dataset_valid,
                               batch_size=batch_size,
-                              sampler=sampler_valid)
+                              #sampler=sampler_valid
+                              )
     test_loader = DataLoader(dataset=processed_dataset_test,
                              batch_size=batch_size,
-                             collate_fn=col.collate_batch)
+                             #collate_fn=col.collate_batch
+                             )
 
     model = BasicLSTMModel()
-    optimizer = optim.Adam(model.parameters(), lr=conf['training']['initial_learning_rate'])
+    optimizer = optim.Adam(model.parameters(), lr=conf['pipeline']['training']['initial_learning_rate'])
 
-    loss_fn = nn.MSELoss()
-    #loss_fn = nn.CrossEntropyLoss()
-    #loss_fn = nn.NLLLoss(reduction='none')
+    loss_fn = hydra.utils.instantiate(conf['pipeline']['training']['loss'])
 
     accuracy_fn = partial(accuracy, device=device)
 
-    num_epoch = conf['training']['num_epochs']
+    num_epoch = conf['pipeline']['training']['num_epochs']
 
     mlflow_logger = MLFlowLogger(experiment_name="experiment",
-                                 tracking_uri=conf["logs"]["logger"]['tracking_uri'],
+                                 tracking_uri=conf['global']["logs"]["logger"]['tracking_uri'],
                                  batch_granularity=True)
     mlflow_logger.log_config_params(config_params=conf)  # logging the config dictionary
 
     hydra_output_path = hydra.core.hydra_config.HydraConfig.get()['runtime']['output_dir']
     working_directory = os.path.join(os.getcwd(),
-                                     hydra_output_path, conf["logs"]["local"]['log_dir'],
-                                     conf["logs"]["local"]['saving_dir'])
+                                     hydra_output_path, conf['global']["logs"]["local"]['log_dir'],
+                                     conf['global']["logs"]["local"]['saving_dir'])
 
     exp = Experiment(directory=working_directory,
                      network=model,
                      device=device,
-                     logging=conf['logs']['local']['logging'],
+                     logging=conf['global']['logs']['local']['logging'],
                      optimizer=optimizer,
                      loss_function=loss_fn,
                      batch_metrics=[accuracy_fn])

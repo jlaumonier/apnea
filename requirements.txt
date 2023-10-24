@@ -20,3 +20,4 @@ codecarbon
 p_tqdm
 mlflow
 tensorboard
+wfdb
