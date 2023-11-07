@@ -1,14 +1,20 @@
 import uuid
-import os
-from src.pipeline.task import Task
+
 from torch.utils.data import Dataset
+from hydra import initialize, compose
+
+from src.pipeline.task import Task
 
 def test_task_init():
-    data_repo_path = '../data/repository'
+    with initialize(version_base=None, config_path="../conf"):
+        # config is relative to a module
+        cfg = compose(config_name="data-pipeline")
 
-    simple_task = Task(data_repo_path, '00010203-0405-0607-0809-0a0b0c0d0e0f')
+        data_repo_path = '../data/repository'
 
-    assert simple_task.src_id == uuid.UUID('00010203-0405-0607-0809-0a0b0c0d0e0f')
-    assert type(simple_task.src_dataset) == Dataset
-    assert type(simple_task.dest_id) == uuid.UUID
+        simple_task = Task(data_repo_path, '8b663706-ab51-4a9a-9a66-eb9ac2c135f3')
+
+        assert simple_task.src_id == uuid.UUID('8b663706-ab51-4a9a-9a66-eb9ac2c135f3')
+        assert type(simple_task.src_dataset) == Dataset
+        assert type(simple_task.dest_id) == uuid.UUID
 
