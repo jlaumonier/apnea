@@ -1,12 +1,19 @@
 import os
 import shutil
+import pytest
 
 from src.pipeline.repository import Repository
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
-def test_repository_init_create_repo():
-    os.makedirs('../data/temp', exist_ok=True)
 
-    data_repo_path = '../data/temp/repo'
+@pytest.fixture(scope="function")
+def relative_path():
+    yield '../'
+
+
+def test_repository_init_create_repo(base_directory):
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+
+    data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repo')
 
     assert not os.path.exists(data_repo_path)
 
@@ -17,7 +24,7 @@ def test_repository_init_create_repo():
     assert os.path.isfile(os.path.join(data_repo_path, 'metadata_db.json'))
     assert repo.valid_repo == True
 
-    shutil.rmtree('../data/temp')
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
 def test_repository_init_repo_loaded():
     data_repo_path = '../data/repository'
@@ -43,8 +50,8 @@ def test_repository_boostrap_copy():
 
     shutil.rmtree('../data/temp')
 
-def test_load_repository():
-    data_repo_path = '../data/repository'
+def test_load_repository(base_directory):
+    data_repo_path = os.path.join(base_directory, 'data', 'repository')
 
     repo = Repository(data_repo_path)
     dataset = repo.load_dataset('8b663706-ab51-4a9a-9a66-eb9ac2c135f3')

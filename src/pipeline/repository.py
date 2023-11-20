@@ -3,7 +3,7 @@ import json
 import shutil
 import uuid
 
-from hydra import initialize, compose
+from hydra import initialize_config_dir, compose
 from hydra.utils import get_original_cwd, instantiate
 from torch.utils.data import Dataset
 
@@ -56,9 +56,10 @@ class Repository:
         return new_uuid
 
     def load_dataset(self, id: str) -> Dataset:
-        with initialize(version_base=None, config_path=os.path.join(self.path, 'conf')):
+        with initialize_config_dir(config_dir=os.path.join(self.path, 'conf')):
             # config is relative to a module
             cfg = compose(config_name=id)
+            cfg['data_path'] = os.path.join(self.path, 'datasets', id)
             dataset = instantiate(cfg)
             return dataset
 
