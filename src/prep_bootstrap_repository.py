@@ -2,14 +2,16 @@ import os
 import hydra
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 
-from src.pipeline.task import Task
-
+from src.pipeline.repository import Repository
+from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 
 @hydra.main(config_path="../conf", config_name="data-pipeline", version_base=None)
 def main(conf):
     data_repo_path = os.path.join('..', 'data', 'repository')
-    simple_task = Task(data_repo_path, conf)
-    simple_task.run(conf)
+    source_dataset_path = os.path.join('..', 'data', 'raw')
+
+    repo = Repository(data_repo_path)
+    _ = repo.bootstrap(source_dataset_path, RawOscarDataset)
 
 
 if __name__ == "__main__":

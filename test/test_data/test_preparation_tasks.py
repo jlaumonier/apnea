@@ -1,5 +1,6 @@
 import os
 import shutil
+import pytest
 from datetime import datetime
 
 import numpy as np
@@ -13,6 +14,9 @@ from src.data.preparation_tasks import align_channels, \
     generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window, \
     generate_overfitting_dataset
 
+@pytest.fixture(scope="function")
+def relative_path():
+    yield '../'
 
 def test_align_channels_non_aligned():
     idx = pd.date_range(start='2023-06-15 00:00:00', end='2023-06-15 00:00:00.2', freq='100ms')
@@ -287,20 +291,22 @@ def test_generate_annotation_multi_event_merge_some():
     assert (result_df['ClearAirway'].to_list() == original_df['ClearAirway'].to_list())
     assert (result_df['Hypopnea'].to_list() == original_df['Hypopnea'].to_list())
 
-def test_generate_all_rolling_window():
-    os.makedirs('../data/temp', exist_ok=True)
-    oscar_dataset = RawOscarDataset(data_path='../data/raw', output_type='dataframe', limits=None)
+def test_generate_all_rolling_window(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
+    oscar_dataset = RawOscarDataset(data_path=os.path.join(data_path, 'raw'),
+                                    output_type='dataframe', limits=None)
 
     generate_all_rolling_window(oscar_dataset=oscar_dataset,
                                 length=500,
                                 keep_last_incomplete=False,
-                                output_dir_path='../data/processing/windowed/')
+                                output_dir_path=os.path.join(data_path, 'processing', 'windowed'))
 
-    assert len(os.listdir("../data/processing/windowed/feather")) == 2
-    assert len(os.listdir("../data/processing/windowed/feather/df_0")) == 51
-    assert len(os.listdir("../data/processing/windowed/feather/df_1")) == 1443
+    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather'))) == 2
+    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_0'))) == 51
+    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_1'))) == 1443
 
-    dfs_path = '../data/processing/windowed/feather/df_0'
+    dfs_path = os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_0')
     for filename in os.listdir(dfs_path):
         df = pd.read_feather(os.path.join(dfs_path, filename))
         assert 'time_utc' in df.keys()
@@ -308,18 +314,20 @@ def test_generate_all_rolling_window():
         assert 'ApneaEvent' in df.keys()
         assert df['time_utc'].is_monotonic_increasing
 
-    shutil.rmtree('../data/temp')
+    shutil.rmtree(os.path.join(data_path, 'temp'))
 
-def test_generate_overfitting_dataset():
-    os.makedirs('../data/temp', exist_ok=True)
+def test_generate_overfitting_dataset(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
 
-    processed_dataset = ProcessedDataset(data_path='../data/processing/windowed', output_type='dataframe', limits=None)
+    processed_dataset = ProcessedDataset(data_path=os.path.join(data_path, 'processing', 'windowed'),
+                                         output_type='dataframe', limits=None)
 
     generate_overfitting_dataset(oscar_dataset=processed_dataset,
                                  output_format='feather',
                                  size=1,
-                                 output_dir_path='../data/temp/processing/overfitting')
+                                 output_dir_path=os.path.join(data_path, 'temp', 'processing', 'overfitting'))
 
-    assert (len(os.listdir("../data/temp/processing/overfitting/feather/")) == 2)
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'overfitting', 'feather'))) == 2
 
-    shutil.rmtree('../data/temp')
+    shutil.rmtree(os.path.join(data_path, 'temp'))

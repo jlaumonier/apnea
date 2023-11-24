@@ -1,6 +1,4 @@
 defaults:
-  - global/logs/local/default
-  - global/logs/logger/mlflow
   - pipeline/data/dataset: default
   - pipeline/data/tasks: generate_all_rolling_window
   - _self_

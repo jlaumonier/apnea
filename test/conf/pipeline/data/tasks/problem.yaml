@@ -1,0 +1,5 @@
+time_series_annot_format: point
+time_series_annot_point_len: 10S
+apnea_event_annot: []
+time_series_form_type: windowed
+time_series_form_size: 500

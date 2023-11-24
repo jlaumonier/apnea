@@ -1,9 +1,16 @@
+import os
+import pytest
+
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.utils import get_nb_events
 
-def test___getitem__():
+@pytest.fixture(scope="function")
+def relative_path():
+    yield '../../'
 
-    ds = RawOscarDataset(data_path='../../data/raw')
+def test___getitem__(base_directory):
+    data_path = os.path.join(base_directory, 'data', 'raw')
+    ds = RawOscarDataset(data_path=data_path)
 
     assert len(ds) == 2
     # id elmnt, inputs, first timestep, first sensor

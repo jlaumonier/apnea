@@ -1,9 +1,16 @@
+import os
+import pytest
+
 from src.data.datasets.slpdb_dataset import SLPDB_Dataset
 from src.data.utils import get_nb_events
 
-def test___getitem__():
+@pytest.fixture(scope="function")
+def relative_path():
+    yield '../../'
 
-    ds = SLPDB_Dataset(data_path='../../../data/raw-slpdb/physionet.org/files/slpdb/1.0.0')
+def test___getitem__(base_directory):
+    data_path = os.path.join(base_directory, '..', 'data', 'raw-slpdb/physionet.org/files/slpdb/1.0.0')
+    ds = SLPDB_Dataset(data_path=data_path)
 
     assert len(ds) == 18
     # id elmnt, inputs, first timestep, first sensor
