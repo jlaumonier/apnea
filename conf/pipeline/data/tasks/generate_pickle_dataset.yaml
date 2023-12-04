@@ -1,0 +1,4 @@
+task_func:
+  _target_: src.data.preparation_tasks.generate_pickle_dataset
+  oscar_dataset: ??
+  output_dir_path: ??
