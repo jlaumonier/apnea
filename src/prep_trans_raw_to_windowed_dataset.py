@@ -5,7 +5,7 @@ from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarb
 from src.pipeline.task import Task
 
 
-@hydra.main(config_path="../conf", config_name="data-pipeline", version_base=None)
+@hydra.main(config_path="../conf", config_name="data-pipeline-rolling", version_base=None)
 def main(conf):
     conf.pipeline.data.dataset.source = 'fc0599ca-91cb-4b7c-b5cb-4d4af1d3a731'
 

@@ -1,7 +1,7 @@
 defaults:
   - global/logs/local/default
   - global/logs/logger/mlflow
-  - pipeline/data/dataset: default
+  - pipeline/data/dataset: numpy
   - pipeline/data/tasks: generate_pickle_dataset
   - _self_
 

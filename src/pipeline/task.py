@@ -19,11 +19,12 @@ class Task:
         self.repo = Repository(data_repository_path)
         # source dataset id
         src_id = cfg.pipeline.data.dataset.source
+        output_type = cfg.pipeline.data.dataset.output_type
         self.src_id = None
         self.src_dataset = None
         if src_id in self.repo.metadata['datasets']:
             self.src_id = uuid.UUID(src_id)
-            self.src_dataset = self.repo.load_dataset(src_id)
+            self.src_dataset = self.repo.load_dataset(src_id, output_type)
         # destination dataset id
         self.dest_id = uuid.uuid4()
 

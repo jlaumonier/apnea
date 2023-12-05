@@ -57,15 +57,16 @@ def test_repository_boostrap_copy(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
-def test_load_repository(base_directory):
+def test_load_dataset(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
 
     repo = Repository(data_repo_path)
-    dataset = repo.load_dataset('8b663706-ab51-4a9a-9a66-eb9ac2c135f3')
+    dataset = repo.load_dataset('8b663706-ab51-4a9a-9a66-eb9ac2c135f3', 'dataframe')
 
     assert dataset.__class__.__name__ ==  'RawOscarDataset'
+    assert len(dataset) == 2
 
-def test_create_repository():
+def test_create_dataset():
     assert False
 
 def test_commit_repository():

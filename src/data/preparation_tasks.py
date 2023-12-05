@@ -191,6 +191,9 @@ def split_dataset(oscar_dataset: Dataset,
                   output_dir_path: str,
                   train_ratio: float,
                   valid_ratio: float):
+    """
+    Cette fonction divise le jeu de données en ensembles d'entrainement, de validation et de test
+    """
 
     len_complete_dataset = len(oscar_dataset)
     # take only a subset of complete dataset
