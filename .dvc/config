@@ -1,5 +1,5 @@
 [core]
     remote = dataremote
 ['remote "dataremote"']
-    url = ssh://julien@data.jelynet.com:2222/var/data/
+    url = ssh://julien@data.jelynet.com:21349/var/data/
     ask_passphrase = true
