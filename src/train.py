@@ -3,6 +3,7 @@ from functools import partial
 from time import time
 
 import hydra
+from hydra.utils import get_original_cwd, instantiate
 import numpy as np
 import torch
 import torch.nn as nn
@@ -12,9 +13,11 @@ from torch.utils.data.sampler import WeightedRandomSampler
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 from poutyne import MLFlowLogger
 from poutyne.framework import Experiment
+from omegaconf import OmegaConf
+from torch.utils.data import Dataset
 
 
-from src.data.datasets.processed_dataset import ProcessedDataset
+from src.pipeline.repository import Repository
 from src.data.datasets.pickle_dataset import PickleDataset
 from src.data.ts_collator import TSCollator
 from src.metrics.accuracy import accuracy
@@ -36,6 +39,12 @@ def calculate_weights_dataset_balancing(dataset):
     return sampler
 
 
+def load_split_dataset(id: str, output_type: str, set_type: str, data_repo_path:str) -> Dataset:
+    cfg = OmegaConf.load(os.path.join(data_repo_path, 'conf', id + '.yaml'))
+    cfg['data_path'] = os.path.join(data_repo_path, 'datasets', id, set_type)
+    cfg['output_type']  = output_type
+    dataset = instantiate(cfg)
+    return dataset
 
 
 @hydra.main(config_path="../conf", config_name="training-pipeline", version_base=None)
@@ -45,21 +54,28 @@ def main(conf):
 
     batch_size = conf['pipeline']['training']['batch_size']
 
-    # sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
-    # sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
+    data_repo_path = os.path.join('..', 'data', 'repository')
+    id_split_dataset = conf['pipeline']['training']['dataset']['source']
 
-    processed_dataset_train = PickleDataset(src_data_path='../data/processing/split/train')
-    processed_dataset_valid = PickleDataset(src_data_path='../data/processing/split/valid')
-    processed_dataset_test = PickleDataset(src_data_path='../data/processing/split/test')
+    processed_dataset_train = load_split_dataset(id_split_dataset, 'numpy', 'train', data_repo_path)
+    processed_dataset_valid = load_split_dataset(id_split_dataset, 'numpy', 'valid', data_repo_path)
+    processed_dataset_test = load_split_dataset(id_split_dataset, 'numpy', 'test', data_repo_path)
+
+    sampler_train = None
+    sampler_valid = None
+    if conf.pipeline.training.balancing.balancing:
+        sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
+        sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
+
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
     train_loader = DataLoader(dataset=processed_dataset_train,
                               batch_size=batch_size,
-                              #sampler=sampler_train
+                              sampler=sampler_train
                               )
     valid_loader = DataLoader(dataset=processed_dataset_valid,
                               batch_size=batch_size,
-                              #sampler=sampler_valid
+                              sampler=sampler_valid
                               )
     test_loader = DataLoader(dataset=processed_dataset_test,
                              batch_size=batch_size,
@@ -94,17 +110,17 @@ def main(conf):
                      batch_metrics=[accuracy_fn])
 
     exp.train(train_generator=train_loader,
-              valid_generator=train_loader,
+              valid_generator=valid_loader,
               epochs=num_epoch,
               callbacks=[mlflow_logger])
 
     exp.test(train_loader)
 
     print('confmat on valid')
-    conf_mat(train_loader, model, device)
+    conf_mat(valid_loader, model, device)
 
     print('confmat on test')
-    conf_mat(train_loader, model, device)
+    conf_mat(test_loader, model, device)
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 

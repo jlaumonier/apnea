@@ -3,7 +3,7 @@ defaults:
   - global/logs/logger/mlflow
   - pipeline/training/dataset: default
   - pipeline/training: default
-  - pipeline/training/split : default
+  - pipeline/training/balancing: default
   - _self_
 
 hydra:

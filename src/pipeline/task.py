@@ -30,7 +30,7 @@ class Task:
 
     def run(self, cfg):
         guid, dataset_path = self.repo.create_dataset()
-        call(cfg.pipeline.data.tasks.task_func,
-             oscar_dataset = self.src_dataset,
-             output_dir_path = dataset_path)
-        self.repo.commit_dataset(guid, ProcessedDataset, conf=cfg)
+        dataset_type = call(cfg.pipeline.data.tasks.task_func,
+                            oscar_dataset = self.src_dataset,
+                            output_dir_path = dataset_path)
+        self.repo.commit_dataset(guid, dataset_type, conf=cfg)

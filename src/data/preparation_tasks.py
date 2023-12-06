@@ -3,12 +3,14 @@ from tqdm import tqdm
 from p_tqdm import p_map
 import pickle
 import random
+from typing import Type
 
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
 
 from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
+from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.datasets.pickle_dataset import PickleDataset
 from .utils import get_nb_events
 
@@ -80,7 +82,7 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
                                 output_dir_path: str,
                                 length: int,
                                 keep_last_incomplete=True,
-                                output_format='feather') -> None:
+                                output_format='feather') -> Type:
 
     def  _process_element(idx_ts, ts):
         dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
@@ -96,9 +98,11 @@ def generate_all_rolling_window(oscar_dataset: Dataset,
     #    _process_element(idx_ts, ts)
     p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
 
+    return ProcessedDataset
+
 
 def generate_pickle_dataset(oscar_dataset: Dataset,
-                            output_dir_path: str) -> None:
+                            output_dir_path: str) -> Type:
     """
     This method generates a piclke numpy dataset from windows feather dataset set as numpy
     :param oscar_dataset: processed dataset with numpy output
@@ -123,11 +127,13 @@ def generate_pickle_dataset(oscar_dataset: Dataset,
     with open(output_file_gt, 'wb') as f_gt:
         pickle.dump(ground_truths, f_gt)
 
+    return PickleDataset
+
 
 def generate_overfitting_dataset(oscar_dataset: Dataset,
                                  output_dir_path: str,
                                  output_format='feather',
-                                 size: int=5) -> None:
+                                 size: int=5) -> Type:
     """
     This method generates a processed feather dataset from windows feather dataset set dataframe output
     :param oscar_dataset: processed dataset with datafrace output
@@ -155,6 +161,8 @@ def generate_overfitting_dataset(oscar_dataset: Dataset,
         _process_element(idx_p, oscar_dataset[idx_p])
     for idx_n in negative_choice:
         _process_element(idx_n, oscar_dataset[idx_n])
+
+    return ProcessedDataset
 
 
 def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
@@ -190,9 +198,9 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
 def split_dataset(oscar_dataset: Dataset,
                   output_dir_path: str,
                   train_ratio: float,
-                  valid_ratio: float):
+                  valid_ratio: float) -> Type:
     """
-    Cette fonction divise le jeu de données en ensembles d'entrainement, de validation et de test
+    This function splits the dataset into training, validation and test sets
     """
 
     len_complete_dataset = len(oscar_dataset)
@@ -208,15 +216,17 @@ def split_dataset(oscar_dataset: Dataset,
 
     split_dataset_train = PickleDataset(output_type='numpy',
                                         limits=slice(0, idx_tvt_set[0]),
-                                        src_data_path='../data/processing/pickle/')
+                                        data_path=oscar_dataset.data_path)
     split_dataset_valid = PickleDataset(output_type='numpy',
                                         limits=slice(idx_tvt_set[0] + 1, idx_tvt_set[1]),
-                                        src_data_path='../data/processing/pickle/'
+                                        data_path=oscar_dataset.data_path
                                         )
     split_dataset_test = PickleDataset(output_type='numpy',
                                        limits=slice(idx_tvt_set[1] + 1, idx_tvt_set[2]),
-                                       src_data_path='../data/processing/pickle/')
+                                       data_path=oscar_dataset.data_path)
 
     generate_pickle_dataset(split_dataset_train, os.path.join(output_dir_path, 'train'))
     generate_pickle_dataset(split_dataset_valid, os.path.join(output_dir_path, 'valid'))
     generate_pickle_dataset(split_dataset_test, os.path.join(output_dir_path, 'test'))
+
+    return PickleDataset

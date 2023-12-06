@@ -7,14 +7,15 @@ from torch.utils.data import Dataset
 
 class PickleDataset(Dataset):
 
-    def __init__(self, output_type='numpy', limits=None, src_data_path=None):
+    def __init__(self, data_path, output_type='numpy', limits=None, ):
         """
         :param output_type: 'numpy'. 'dataframe' is not allowed
         :param limits: slice to filter the dataset
         """
         self.output_type = 'numpy'
-        input_file_inputs = os.path.join(src_data_path, 'inputs.pkl')
-        input_file_gt = os.path.join(src_data_path, 'gt.pkl')
+        self.data_path = data_path
+        input_file_inputs = os.path.join(data_path, 'inputs.pkl')
+        input_file_gt = os.path.join(data_path, 'gt.pkl')
         with open(input_file_inputs, 'rb') as f_input:
             self.inputs = pickle.load(f_input)
         with open(input_file_gt, 'rb') as f_gt:
