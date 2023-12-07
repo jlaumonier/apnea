@@ -54,7 +54,7 @@ def main(conf):
 
     batch_size = conf['pipeline']['training']['batch_size']
 
-    data_repo_path = os.path.join('..', 'data', 'repository')
+    data_repo_path = os.path.join('data', 'repository')
     id_split_dataset = conf['pipeline']['training']['dataset']['source']
 
     processed_dataset_train = load_split_dataset(id_split_dataset, 'numpy', 'train', data_repo_path)
@@ -62,11 +62,9 @@ def main(conf):
     processed_dataset_test = load_split_dataset(id_split_dataset, 'numpy', 'test', data_repo_path)
 
     sampler_train = None
-    sampler_valid = None
     if conf.pipeline.training.balancing.balancing:
         sampler_train = calculate_weights_dataset_balancing(processed_dataset_train)
-        sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
-
+        #sampler_valid = calculate_weights_dataset_balancing(processed_dataset_valid)
 
     # https://www.scottcondron.com/jupyter/visualisation/audio/2020/12/02/dataloaders-samplers-collate.html
     train_loader = DataLoader(dataset=processed_dataset_train,
@@ -75,7 +73,7 @@ def main(conf):
                               )
     valid_loader = DataLoader(dataset=processed_dataset_valid,
                               batch_size=batch_size,
-                              sampler=sampler_valid
+                              #sampler=sampler_valid
                               )
     test_loader = DataLoader(dataset=processed_dataset_test,
                              batch_size=batch_size,
