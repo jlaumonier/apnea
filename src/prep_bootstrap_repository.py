@@ -5,7 +5,7 @@ from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarb
 from src.pipeline.repository import Repository
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 
-@hydra.main(config_path="../conf", config_name="data-pipeline", version_base=None)
+@hydra.main(config_path="../conf", config_name="data-pipeline-bootstrap", version_base=None)
 def main(conf):
     data_repo_path = os.path.join('..', 'data', 'repository')
     source_dataset_path = os.path.join('..', 'data', 'raw')
