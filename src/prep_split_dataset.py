@@ -6,7 +6,7 @@ from src.pipeline.task import Task
 
 @hydra.main(config_path="../conf", config_name="data-pipeline-split", version_base=None)
 def main(conf):
-    conf.pipeline.data.dataset.source = 'dd337efa-189e-484a-b1bd-6f061a2fd022'
+    conf.pipeline.data.dataset.source = '2041cb8a-11e7-472e-93e1-ad3af8d2c344'
 
     data_repo_path = os.path.join('..', 'data', 'repository')
     simple_task = Task(data_repo_path, conf)

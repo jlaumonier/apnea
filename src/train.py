@@ -112,13 +112,14 @@ def main(conf):
               epochs=num_epoch,
               callbacks=[mlflow_logger])
 
-    exp.test(train_loader)
+    exp.test(test_loader)
 
     print('confmat on valid')
-    conf_mat(valid_loader, model, device)
+    valid_conf_mat = conf_mat(valid_loader, model, device)
 
     print('confmat on test')
-    conf_mat(test_loader, model, device)
+    test_conf_mat = conf_mat(test_loader, model, device)
+
 
     # TODO test https://www.kaggle.com/code/omershect/learning-pytorch-lstm-deep-learning-with-m5-data
 

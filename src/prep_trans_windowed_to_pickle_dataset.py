@@ -7,7 +7,7 @@ from src.pipeline.task import Task
 
 @hydra.main(config_path="../conf", config_name="data-pipeline-pickle", version_base=None)
 def main(conf):
-    conf.pipeline.data.dataset.source = '4a9769fc-3a48-40a7-a54d-e1d7922ee0a8'
+    conf.pipeline.data.dataset.source = '33f43e8a-aba0-4f4a-8119-9fb9a6bba658'
 
     data_repo_path = os.path.join('..', 'data', 'repository')
     simple_task = Task(data_repo_path, conf)

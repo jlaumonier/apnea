@@ -25,3 +25,4 @@ def conf_mat(test_loader, model, device):
     conf_mat = confusion_matrix(y_true, y_pred)
     print(conf_mat)
     print('classes pred', set_pred, 'true', set_true)
+    return conf_mat
