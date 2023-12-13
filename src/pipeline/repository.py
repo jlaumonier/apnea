@@ -79,9 +79,11 @@ class Repository:
 
         return new_uuid
 
-    def load_dataset(self, id: str, output_type: str, args=None) -> Dataset:
+    def load_dataset(self, id: str, output_type: str, sub_dataset:str = None, args=None) -> Dataset:
         cfg = OmegaConf.load(os.path.join(self.path, 'conf', id + '.yaml'))
         cfg['data_path'] = os.path.join(self.path, 'datasets', id)
+        if sub_dataset is not None:
+            cfg['dataset_type'] = os.path.join(cfg['dataset_type'], sub_dataset)
         cfg['output_type']  = output_type
         if args is not None:
             optional_cfg = OmegaConf.create(args)

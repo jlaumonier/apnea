@@ -71,3 +71,6 @@ def test_create_dataset():
 
 def test_commit_repository():
     assert False
+
+def test_load_sub_dataset(base_directory):
+    assert False
