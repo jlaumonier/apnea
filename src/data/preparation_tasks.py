@@ -130,10 +130,10 @@ def generate_pickle_dataset(oscar_dataset: Dataset,
     return PickleDataset
 
 
-def generate_overfitting_dataset(oscar_dataset: Dataset,
-                                 output_dir_path: str,
-                                 output_format='feather',
-                                 size: int=5) -> Type:
+def generate_balanced_dataset(oscar_dataset: Dataset,
+                              output_dir_path: str,
+                              output_format='feather',
+                              size: int=5) -> Type:
     """
     This method generates a processed feather dataset from windows feather dataset set dataframe output
     :param oscar_dataset: processed dataset with datafrace output

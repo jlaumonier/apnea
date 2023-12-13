@@ -12,7 +12,7 @@ from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.preparation_tasks import align_channels, \
     generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window, \
-    generate_overfitting_dataset
+    generate_balanced_dataset
 
 @pytest.fixture(scope="function")
 def relative_path():
@@ -323,10 +323,10 @@ def test_generate_overfitting_dataset(base_directory):
     processed_dataset = ProcessedDataset(data_path=os.path.join(data_path, 'processing', 'windowed'),
                                          output_type='dataframe', limits=None)
 
-    generate_overfitting_dataset(oscar_dataset=processed_dataset,
-                                 output_format='feather',
-                                 size=1,
-                                 output_dir_path=os.path.join(data_path, 'temp', 'processing', 'overfitting'))
+    generate_balanced_dataset(oscar_dataset=processed_dataset,
+                              output_format='feather',
+                              size=1,
+                              output_dir_path=os.path.join(data_path, 'temp', 'processing', 'overfitting'))
 
     assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'overfitting', 'feather'))) == 2
 

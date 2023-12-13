@@ -21,3 +21,5 @@ p_tqdm
 mlflow
 tensorboard
 wfdb
+ipytree
+ipy_table
