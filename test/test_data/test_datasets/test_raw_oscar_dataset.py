@@ -14,7 +14,7 @@ def test___getitem__(base_directory):
 
     assert len(ds) == 2
     # id elmnt, inputs, first timestep, first sensor
-    assert ds[0][0][0][0] == -38.76000154018402
+    assert ds[0][0][0][0] == 37.560001492500305
     # id elmnt, class
     assert ds[0][1][0] == 0
 

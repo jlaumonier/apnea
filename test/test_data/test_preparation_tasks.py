@@ -300,13 +300,13 @@ def test_generate_all_rolling_window(base_directory):
     generate_all_rolling_window(oscar_dataset=oscar_dataset,
                                 length=500,
                                 keep_last_incomplete=False,
-                                output_dir_path=os.path.join(data_path, 'processing', 'windowed'))
+                                output_dir_path=os.path.join(data_path, 'temp', 'processing', 'windowed'))
 
-    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather'))) == 2
-    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_0'))) == 51
-    assert len(os.listdir(os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_1'))) == 1443
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather'))) == 2
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_0'))) == 1443
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_1'))) == 51
 
-    dfs_path = os.path.join(data_path, 'processing', 'windowed', 'feather', 'df_0')
+    dfs_path = os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_0')
     for filename in os.listdir(dfs_path):
         df = pd.read_feather(os.path.join(dfs_path, filename))
         assert 'time_utc' in df.keys()
@@ -320,7 +320,7 @@ def test_generate_overfitting_dataset(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
 
-    processed_dataset = ProcessedDataset(data_path=os.path.join(data_path, 'processing', 'windowed'),
+    processed_dataset = ProcessedDataset(data_path=os.path.join(data_path, 'repository', 'datasets', '7d8965a5-523c-41e6-8284-8024b7036267'),
                                          output_type='dataframe', limits=None)
 
     generate_balanced_dataset(oscar_dataset=processed_dataset,

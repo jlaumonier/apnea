@@ -19,7 +19,8 @@ class Task:
         self.repo = Repository(data_repository_path)
         # source dataset id
         src_id = cfg.pipeline.data.dataset.source
-        sub_src = cfg.pipeline.data.dataset.sub_src
+        #sub_src = cfg.pipeline.data.dataset.sub_src
+        sub_src = None
         output_type = cfg.pipeline.data.dataset.output_type
         self.src_id = None
         self.src_dataset = None
@@ -34,4 +35,4 @@ class Task:
         dataset_type = call(cfg.pipeline.data.tasks.task_func,
                             oscar_dataset = self.src_dataset,
                             output_dir_path = dataset_path)
-        self.repo.commit_dataset(guid, dataset_type, conf=cfg)
+        self.repo.commit_dataset(guid, dataset_type, task_config=cfg)

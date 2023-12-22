@@ -66,11 +66,33 @@ def test_load_dataset(base_directory):
     assert dataset.__class__.__name__ ==  'RawOscarDataset'
     assert len(dataset) == 2
 
-def test_create_dataset():
-    assert False
+def test_create_dataset(base_directory):
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+    data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
+    repo = Repository(data_repo_path)
 
-def test_commit_repository():
-    assert False
+    guid, dest_data_path = repo.create_dataset()
 
-def test_load_sub_dataset(base_directory):
-    assert False
+    assert str(guid) in dest_data_path
+
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
+def test_commit_repository(base_directory):
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+    data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
+    repo = Repository(data_repo_path)
+    guid, dest_data_path = repo.create_dataset()
+    task_config = OmegaConf.create()
+    task_config['test'] = 'test1'
+
+    repo.commit_dataset(guid, RawOscarDataset, task_config)
+
+    assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
+    tested_conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
+    assert 'RawOscarDataset' in tested_conf['_target_']
+    assert tested_conf['data_path'] == '??'
+    assert str(guid) in repo.metadata['datasets']
+    assert 'RawOscarDataset' in repo.metadata['datasets'][str(guid)]['type']
+    assert repo.valid_repo
+
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))

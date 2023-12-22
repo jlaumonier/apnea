@@ -1,1 +1,1 @@
-{"datasets": {"8b663706-ab51-4a9a-9a66-eb9ac2c135f3": {}}}
+{"datasets": {"8b663706-ab51-4a9a-9a66-eb9ac2c135f3": {}, "7d8965a5-523c-41e6-8284-8024b7036267": {"type": "src.data.datasets.processed_dataset.ProcessedDataset", "task_config": {"pipeline": {"data": {"dataset": {"source": "8b663706-ab51-4a9a-9a66-eb9ac2c135f3", "output_type": "dataframe"}, "tasks": {"task_func": {"_target_": "src.data.preparation_tasks.generate_all_rolling_window", "length": 500, "keep_last_incomplete": false, "oscar_dataset": "??", "output_dir_path": "??"}}}}}}}}
