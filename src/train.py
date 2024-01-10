@@ -57,6 +57,7 @@ def main(conf):
     data_repo_path = os.path.join('data', 'repository')
     id_split_dataset = conf['pipeline']['training']['dataset']['source']
 
+    # TODO changer pour utiliser repo.load_dataset(sub_dataset)
     processed_dataset_train = load_split_dataset(id_split_dataset, 'numpy', 'train', data_repo_path)
     processed_dataset_valid = load_split_dataset(id_split_dataset, 'numpy', 'valid', data_repo_path)
     processed_dataset_test = load_split_dataset(id_split_dataset, 'numpy', 'test', data_repo_path)

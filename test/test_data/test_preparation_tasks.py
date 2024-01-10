@@ -316,7 +316,7 @@ def test_generate_all_rolling_window(base_directory):
 
     shutil.rmtree(os.path.join(data_path, 'temp'))
 
-def test_generate_overfitting_dataset(base_directory):
+def test_generate_balanced_dataset(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
 

@@ -1,5 +1,0 @@
-task_func:
-  _target_: src.data.preparation_tasks.generate_overfitting_dataset
-  size: 4000
-  oscar_dataset: ??
-  output_dir_path: ??

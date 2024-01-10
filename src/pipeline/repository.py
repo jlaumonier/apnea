@@ -85,7 +85,7 @@ class Repository:
         cfg = OmegaConf.load(os.path.join(self.path, 'conf', id + '.yaml'))
         cfg['data_path'] = os.path.join(self.path, 'datasets', id)
         if sub_dataset is not None:
-            cfg['dataset_type'] = os.path.join(cfg['dataset_type'], sub_dataset)
+            cfg['data_path'] = os.path.join(cfg['data_path'], sub_dataset)
         cfg['output_type']  = output_type
         if args is not None:
             optional_cfg = OmegaConf.create(args)

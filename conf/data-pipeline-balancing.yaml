@@ -2,7 +2,7 @@ defaults:
   - global/logs/local/default
   - global/logs/logger/mlflow
   - pipeline/data/dataset: dataframe
-  - pipeline/data/tasks: generate_overfitting_dataset
+  - pipeline/data/tasks: generate_balanced_dataset
   - _self_
 
 hydra:

@@ -66,6 +66,15 @@ def test_load_dataset(base_directory):
     assert dataset.__class__.__name__ ==  'RawOscarDataset'
     assert len(dataset) == 2
 
+def test_load_dataset_sub_dataset(base_directory):
+    data_repo_path = os.path.join(base_directory, 'data', 'repository')
+
+    repo = Repository(data_repo_path)
+    dataset = repo.load_dataset('0b1cdc83-50fe-4021-8823-cde249e8f7e5', 'dataframe', sub_dataset='train')
+
+    assert dataset.__class__.__name__ == 'PickleDataset'
+    assert len(dataset) == 1195
+
 def test_create_dataset(base_directory):
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
     data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')

@@ -1,0 +1,6 @@
+task_func:
+  _target_: src.data.preparation_tasks.split_dataset
+  oscar_dataset: ??
+  output_dir_path: ??
+  train_ratio: 0.8
+  valid_ratio: 0.1
