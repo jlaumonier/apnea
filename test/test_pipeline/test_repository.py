@@ -70,7 +70,7 @@ def test_load_dataset_sub_dataset(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
 
     repo = Repository(data_repo_path)
-    dataset = repo.load_dataset('0b1cdc83-50fe-4021-8823-cde249e8f7e5', 'dataframe', sub_dataset='train')
+    dataset = repo.load_dataset('eb0e1bf4-88cf-4cfb-850c-ad11092af8f7', 'dataframe', sub_dataset='train')
 
     assert dataset.__class__.__name__ == 'PickleDataset'
     assert len(dataset) == 1195
