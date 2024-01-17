@@ -2,6 +2,7 @@ import os  #
 import json
 import shutil
 import uuid
+from typing import List, Tuple
 
 from hydra import initialize_config_dir, compose
 from hydra.utils import get_original_cwd, instantiate
@@ -127,3 +128,38 @@ class Repository:
 
         # revalidate repository
         self.valid_repo = self._valid_repository()
+
+    def remove_dataset(self, guid: str) -> None:
+        """
+        Remove the dataset from the repository and all datasets under it
+        :param guid: the guid of the dataset to remove
+        """
+        # get all uuid to removed
+        list_uuids = []
+        nodes = self.get_list_tree_chain()
+        fifo = [guid]
+        while len(fifo) > 0:
+            uuid = fifo.pop(0)
+            list_uuids.append(uuid)
+            childs = [n[0] for n in nodes if n[1] == uuid]
+            fifo.extend(childs)
+        # remove all elements
+        for guid in list_uuids:
+            self.metadata['datasets'].pop(guid)
+            shutil.rmtree(os.path.join(self.path, 'datasets', guid))
+            os.remove(os.path.join(self.path, 'conf', str(guid) + '.yaml'))
+            json.dump(self.metadata, open(os.path.join(self.path, 'metadata_db.json'), "w"))
+
+    def get_list_tree_chain(self) -> List[Tuple]:
+        """ get all datasets as a list containing (id, id_parent)"""
+        list_node = []
+        for ds_id in self.metadata['datasets'].keys():
+            node = None
+            if 'task_config' in self.metadata['datasets'][ds_id]:
+                src_id = self.metadata['datasets'][ds_id]['task_config']['pipeline']['data']['dataset']['source']
+                node = (ds_id, src_id)
+            else:
+                node = (ds_id, None)
+            list_node.append(node)
+
+        return list_node

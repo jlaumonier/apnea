@@ -94,6 +94,12 @@ def test_commit_repository(base_directory):
     task_config = OmegaConf.create()
     task_config['test'] = 'test1'
 
+    # create a fake dataset content
+    os.makedirs(dest_data_path)
+    fp = open(os.path.join(dest_data_path,'temp.txt'), 'w')
+    fp.write('first line')
+    fp.close()
+
     repo.commit_dataset(guid, RawOscarDataset, task_config)
 
     assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
@@ -102,6 +108,70 @@ def test_commit_repository(base_directory):
     assert tested_conf['data_path'] == '??'
     assert str(guid) in repo.metadata['datasets']
     assert 'RawOscarDataset' in repo.metadata['datasets'][str(guid)]['type']
-    assert repo.valid_repo
+    repo._valid_repository()
+    assert repo.valid_repo == 0
+    # ensure that metadata.json has been saved
+    repo._load_repository()
+    assert str(guid) in repo.metadata['datasets']
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
+def test_remove_dataset_leaf(base_directory):
+    src_data_repo_path = os.path.join(base_directory, 'data', 'repository')
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+    temp_data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
+    shutil.copytree(src_data_repo_path, temp_data_repo_path)
+    repo = Repository(temp_data_repo_path)
+    uuid_to_remove = 'eb0e1bf4-88cf-4cfb-850c-ad11092af8f7'
+
+    repo.remove_dataset(uuid_to_remove)
+
+    assert uuid_to_remove not in repo.metadata['datasets']
+    assert not os.path.exists(os.path.join(temp_data_repo_path, 'conf', str(uuid_to_remove) + '.yaml'))
+    assert not os.path.exists(os.path.join(temp_data_repo_path, 'datasets', str(uuid_to_remove)))
+    repo._valid_repository()
+    assert repo.valid_repo == 0
+    # ensure that metadata.json has been saved
+    repo._load_repository()
+    assert uuid_to_remove not in repo.metadata['datasets']
+
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
+def test_remove_dataset_branch(base_directory):
+    src_data_repo_path = os.path.join(base_directory, 'data', 'repository')
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+    temp_data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
+    shutil.copytree(src_data_repo_path, temp_data_repo_path)
+    repo = Repository(temp_data_repo_path)
+    uuid_to_remove = '7d8965a5-523c-41e6-8284-8024b7036267'
+    expected_removed_uuid = ['7d8965a5-523c-41e6-8284-8024b7036267',
+                             '3b96d5a7-0767-41b9-962e-ea4de5d56827',
+                             'eb0e1bf4-88cf-4cfb-850c-ad11092af8f7']
+
+    repo.remove_dataset(uuid_to_remove)
+
+    for uuid in expected_removed_uuid:
+        assert uuid not in repo.metadata['datasets']
+        assert not os.path.exists(os.path.join(temp_data_repo_path, 'conf', str(uuid) + '.yaml'))
+        assert not os.path.exists(os.path.join(temp_data_repo_path, 'datasets', str(uuid)))
+
+    repo._valid_repository()
+    assert repo.valid_repo == 0
+    # ensure that metadata.json has been saved
+    repo._load_repository()
+    assert set(expected_removed_uuid).isdisjoint(set(repo.metadata['datasets']))
+
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
+def test_get_list_tree_chain(base_directory):
+    data_repo_path = os.path.join(base_directory, 'data', 'repository')
+    repo = Repository(data_repo_path)
+
+    expected_list = [('8b663706-ab51-4a9a-9a66-eb9ac2c135f3',  None),
+                     ('7d8965a5-523c-41e6-8284-8024b7036267', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'),
+                     ('3b96d5a7-0767-41b9-962e-ea4de5d56827', '7d8965a5-523c-41e6-8284-8024b7036267'),
+                     ('eb0e1bf4-88cf-4cfb-850c-ad11092af8f7', '3b96d5a7-0767-41b9-962e-ea4de5d56827')]
+
+    result = repo.get_list_tree_chain()
+
+    assert result == expected_list

@@ -2,8 +2,9 @@ import os
 
 from textual import events
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Tree, Static, Pretty
-from textual import on
+from textual.widgets import Header, Footer, Tree, Static, Pretty, Label, Button
+from textual.screen import Screen
+from textual import on, work
 
 from pipeline.repository import Repository
 
@@ -22,7 +23,28 @@ def create_dict_tree(node_map, root=None):
 
     return traverse(root, node_map, {root})
 
+class QuestionScreen(Screen[bool]):
+    """Screen with a parameter."""
+
+    def __init__(self, question: str) -> None:
+        self.question = question
+        super().__init__()
+
+    def compose(self) -> ComposeResult:
+        yield Label(self.question)
+        yield Button("Yes", id="yes", variant="success")
+        yield Button("No", id="no")
+
+    @on(Button.Pressed, "#yes")
+    def handle_yes(self) -> None:
+        self.dismiss(True)
+
+    @on(Button.Pressed, "#no")
+    def handle_no(self) -> None:
+        self.dismiss(False)
+
 class RepoInfo(Static):
+
 
     def __init__(self):
         super().__init__()
@@ -31,7 +53,7 @@ class RepoInfo(Static):
         self.repository = Repository(data_repo_path)
         self.dataset_info = Pretty({})
         self.repo_tree = Tree("")
-        self.repo_tree.root.expand_all()
+        self.highlighted_node = None
 
 
     def _fill_tree(self):
@@ -45,20 +67,11 @@ class RepoInfo(Static):
                 node.allow_expand = False
                 node.set_label(name, data=name)
 
-        datatsets = self.repository.metadata['datasets']
-        list_node = []
-        for ds_id in datatsets.keys():
-            node = None
-            if 'task_config' in datatsets[ds_id]:
-                src_id = datatsets[ds_id]['task_config']['pipeline']['data']['dataset']['source']
-                node = (ds_id, src_id)
-            else:
-                node = (ds_id, None)
-            list_node.append(node)
-
-        dict_tree = create_dict_tree(list_node, None)
+        self.repo_tree.clear()
+        list_nodes = self.repository.get_list_tree_chain()
+        dict_tree = create_dict_tree(list_nodes, None)
         add_node("DataSets", self.repo_tree.root, dict_tree)
-
+        self.repo_tree.root.expand_all()
 
     def get_task(self, id):
         ds = self.repository.metadata['datasets'][id]
@@ -80,11 +93,12 @@ class RepoInfo(Static):
         if n.data is not None:
             ds = self.repository.metadata['datasets'][n.data]
             self.dataset_info.update(ds)
-
+            self.highlighted_node = n.data
 
 
 
 class RepoApp(App):
+    BINDINGS = [('d', 'delete_node', 'Delete highligted node')]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -94,6 +108,13 @@ class RepoApp(App):
         yield Header()
         yield self.repo_info
         yield Footer()
+
+    @work
+    async def action_delete_node(self):
+        if await self.push_screen_wait(QuestionScreen("Delete highlighted datasets ?"),):
+            self.repo_info.repository.remove_dataset(self.repo_info.highlighted_node)
+            self.repo_info._fill_tree()
+
 
 
 if __name__ == "__main__":
