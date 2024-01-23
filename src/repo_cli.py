@@ -23,6 +23,7 @@ def create_dict_tree(node_map, root=None):
 
     return traverse(root, node_map, {root})
 
+
 class QuestionScreen(Screen[bool]):
     """Screen with a parameter."""
 
@@ -43,18 +44,17 @@ class QuestionScreen(Screen[bool]):
     def handle_no(self) -> None:
         self.dismiss(False)
 
-class RepoInfo(Static):
 
+class RepoInfo(Static):
 
     def __init__(self):
         super().__init__()
-        # data_repo_path = os.path.join('..', 'data', 'repository')
-        data_repo_path = '/home/julien/prog/apnea/test/data/repository'
+        data_repo_path = os.path.join('data', 'repository')
+        #data_repo_path = '/home/julien/prog/apnea/test/data/repository'
         self.repository = Repository(data_repo_path)
         self.dataset_info = Pretty({})
         self.repo_tree = Tree("")
         self.highlighted_node = None
-
 
     def _fill_tree(self):
         def add_node(name, node, sub_tree):
@@ -96,7 +96,6 @@ class RepoInfo(Static):
             self.highlighted_node = n.data
 
 
-
 class RepoApp(App):
     BINDINGS = [('d', 'delete_node', 'Delete highligted node')]
 
@@ -114,7 +113,6 @@ class RepoApp(App):
         if await self.push_screen_wait(QuestionScreen("Delete highlighted datasets ?"),):
             self.repo_info.repository.remove_dataset(self.repo_info.highlighted_node)
             self.repo_info._fill_tree()
-
 
 
 if __name__ == "__main__":

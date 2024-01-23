@@ -195,6 +195,7 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
 
     return result
 
+
 def split_dataset(oscar_dataset: Dataset,
                   output_dir_path: str,
                   train_ratio: float,
