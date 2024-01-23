@@ -14,17 +14,17 @@ from src.data.preparation_tasks import generate_annotations
 # TODO : need sliding window : https://discuss.pytorch.org/t/is-there-a-data-datasets-way-to-use-a-sliding-window-over-time-series-data/115702/4
 class RawOscarDataset(Dataset):
 
-    def __init__(self, data_path, output_type='numpy', limits=None,
+    def __init__(self, data_path, getitem_type='numpy', limits=None,
                  output_events_merged: Optional[List[ChannelID]] = None,
                  channel_ids: Optional[List[ChannelID]] = None):
         """
 
-        :param output_type: 'numpy' or 'dataframe'
+        :param getitem_type: 'numpy' or 'dataframe'
         :param limits: determine the number of elements to get
         :param output_events_merged: List of apnea events (ChannelID) to merge into the 'ApneaEvent' column, None means all apnea event types are merged
         :param channel_ids: List of channel to get. If None, only CPAP_FlowRate is get.
         """
-        self.output_type = output_type
+        self.getitem_type = getitem_type
         # l=listdir(data_path)
         list_machines = [d for d in listdir(data_path) if isdir(os.path.join(data_path, d))]
         data_path_cpap = [os.path.join(data_path, d, 'Events') for d in list_machines]
@@ -74,8 +74,8 @@ class RawOscarDataset(Dataset):
         df.sort_index(inplace=True)
         df = generate_annotations(df, length_event='10S', output_events_merge=self.output_events_merged)
 
-        if self.output_type == 'numpy':
+        if self.getitem_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
-        if self.output_type == 'dataframe':
+        if self.getitem_type == 'dataframe':
             result = df
         return result

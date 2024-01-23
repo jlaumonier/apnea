@@ -13,10 +13,10 @@ def main():
 
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
         cfg = compose(config_name="data-pipeline-pickle")
-        cfg.pipeline.data.dataset.source = '7d8965a5-523c-41e6-8284-8024b7036267'
+        cfg.pipeline.data.dataset.source = '9e81da40-41a1-4f9b-9bba-41de71b0ebd9'
 
-        task_raw_to_windowed = Task(src_data_repo_path, cfg)
-        task_raw_to_windowed.run(cfg)
+        task_pickled = Task(src_data_repo_path, cfg)
+        task_pickled.run(cfg)
 
 
 if __name__ == '__main__':

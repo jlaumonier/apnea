@@ -31,6 +31,6 @@ def get_nb_events(dataset):
     de plus : https://stackoverflow.com/questions/50756085/how-to-print-the-progress-of-a-list-comprehension-in-python
     """
 
-    events = [is_contain_event(element, dataset.output_type) for element in tqdm(dataset)]
+    events = [is_contain_event(element, dataset.getitem_type) for element in tqdm(dataset)]
     nb_contain_event = events.count(1)
     return nb_contain_event, events

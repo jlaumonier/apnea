@@ -8,15 +8,13 @@ from torch.utils.data import Dataset
 
 class ProcessedDataset(Dataset):
 
-    def __init__(self, data_path, output_type='numpy', limits=None):
+    def __init__(self, data_path, getitem_type='numpy', limits=None):
         """
-        :param output_type: 'numpy' or 'dataframe'
+        :param getitem_type: 'numpy' or 'dataframe'
         :param limits: slice to filter the dataset
         """
-        self.output_type = output_type
+        self.getitem_type = getitem_type
 
-        #data_path = '../data/processing/windowed/feather/'
-        #data_path = '../data/processing/overfitting/feather/'
         list_files = [y for x in walk(data_path) for y in glob(join(x[0], '*.feather'))]
         self.list_files = [{'label': f, 'value': f, 'fullpath': f} for f in list_files]
 
@@ -31,9 +29,9 @@ class ProcessedDataset(Dataset):
         df = pd.read_feather(self.list_files[idx]['fullpath'])
         assert df['time_utc'].is_monotonic_increasing
 
-        if self.output_type == 'numpy':
+        if self.getitem_type == 'numpy':
             result = df[['FlowRate']].to_numpy(), df[['ApneaEvent']].to_numpy()
-        if self.output_type == 'dataframe':
+        if self.getitem_type == 'dataframe':
             df.set_index('time_utc', inplace=True)
             df.drop('index', axis=1, errors='ignore', inplace=True)
             result = df

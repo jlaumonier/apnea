@@ -13,10 +13,10 @@ def main():
 
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
         cfg = compose(config_name="data-pipeline-split")
-        cfg.pipeline.data.dataset.source = '3b96d5a7-0767-41b9-962e-ea4de5d56827'
+        cfg.pipeline.data.dataset.source = '2438f437-d006-4cf1-8715-2e1c90d2ed29'
 
-        task_raw_to_windowed = Task(src_data_repo_path, cfg)
-        task_raw_to_windowed.run(cfg)
+        task_split = Task(src_data_repo_path, cfg)
+        task_split.run(cfg)
 
 
 if __name__ == '__main__':

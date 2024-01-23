@@ -11,12 +11,14 @@ from pyapnea.oscar.oscar_constants import ChannelID
 from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.preparation_tasks import align_channels, \
-    generate_rolling_window_dataframes, generate_annotations, generate_all_rolling_window, \
-    generate_balanced_dataset
+    generate_rolling_window_dataframes, generate_annotations, task_generate_all_rolling_window, \
+    generate_balanced_dataset, task_generate_pickle_dataset
+
 
 @pytest.fixture(scope="function")
 def relative_path():
     yield '../'
+
 
 def test_align_channels_non_aligned():
     idx = pd.date_range(start='2023-06-15 00:00:00', end='2023-06-15 00:00:00.2', freq='100ms')
@@ -170,6 +172,7 @@ def test_generate_rolling_window_dataframes_index_not_ordered():
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[3].loc['2019-01-01 00:00:07', 'value'] == 8
 
+
 def test_generate_annotation_keep():
     np.random.seed(10)
 
@@ -248,6 +251,7 @@ def test_generate_annotation_entire_event_size_lower():
     assert (result_df['ApneaEvent'].to_list() == [1, 1, 1, 1, 0])
     assert (result_df['Obstructive'].to_list() == original_df['Obstructive'].to_list())
 
+
 def test_generate_annotation_multi_event():
     np.random.seed(10)
 
@@ -259,7 +263,6 @@ def test_generate_annotation_multi_event():
                                columns=['Obstructive'], index=tidx)
     original_df['ClearAirway'] = data2
 
-
     result_df = generate_annotations(original_df, length_event='10S')
 
     assert (result_df['ApneaEvent'].isin([0, 1]).sum(axis=0) == len(result_df))
@@ -267,12 +270,13 @@ def test_generate_annotation_multi_event():
     assert (result_df['Obstructive'].to_list() == original_df['Obstructive'].to_list())
     assert (result_df['ClearAirway'].to_list() == original_df['ClearAirway'].to_list())
 
+
 def test_generate_annotation_multi_event_merge_some():
     np.random.seed(10)
 
     rows, cols = 20, 2
-    data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0]    # Obstructive
-    data2 = [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]    # ClearAirway
+    data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 0]  # Obstructive
+    data2 = [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # ClearAirway
     data3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # Hypopnea
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
@@ -291,16 +295,24 @@ def test_generate_annotation_multi_event_merge_some():
     assert (result_df['ClearAirway'].to_list() == original_df['ClearAirway'].to_list())
     assert (result_df['Hypopnea'].to_list() == original_df['Hypopnea'].to_list())
 
-def test_generate_all_rolling_window(base_directory):
+
+# -- TASKS --
+
+def test_task_generate_all_rolling_window_output_feather_df(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
     oscar_dataset = RawOscarDataset(data_path=os.path.join(data_path, 'raw'),
-                                    output_type='dataframe', limits=None)
+                                    getitem_type='dataframe', limits=None)
 
-    generate_all_rolling_window(oscar_dataset=oscar_dataset,
-                                length=500,
-                                keep_last_incomplete=False,
-                                output_dir_path=os.path.join(data_path, 'temp', 'processing', 'windowed'))
+    type_ds, file_format = task_generate_all_rolling_window(oscar_dataset=oscar_dataset,
+                                                            length=500,
+                                                            keep_last_incomplete=False,
+                                                            output_dir_path=os.path.join(data_path, 'temp',
+                                                                                         'processing',
+                                                                                         'windowed'))
+
+    assert type_ds == ProcessedDataset
+    assert file_format == 'feather'
 
     assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather'))) == 2
     assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_0'))) == 1443
@@ -316,12 +328,14 @@ def test_generate_all_rolling_window(base_directory):
 
     shutil.rmtree(os.path.join(data_path, 'temp'))
 
+
 def test_generate_balanced_dataset(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
 
-    processed_dataset = ProcessedDataset(data_path=os.path.join(data_path, 'repository', 'datasets', '7d8965a5-523c-41e6-8284-8024b7036267'),
-                                         output_type='dataframe', limits=None)
+    processed_dataset = ProcessedDataset(
+        data_path=os.path.join(data_path, 'repository', 'datasets', '7d8965a5-523c-41e6-8284-8024b7036267'),
+        getitem_type='dataframe', limits=None)
 
     generate_balanced_dataset(oscar_dataset=processed_dataset,
                               output_format='feather',
@@ -329,5 +343,23 @@ def test_generate_balanced_dataset(base_directory):
                               output_dir_path=os.path.join(data_path, 'temp', 'processing', 'overfitting'))
 
     assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'overfitting', 'feather'))) == 2
+
+    shutil.rmtree(os.path.join(data_path, 'temp'))
+
+
+def test_task_generate_pickle(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
+    processed_dataset = ProcessedDataset(
+        data_path=os.path.join(data_path, 'repository', 'datasets', '2438f437-d006-4cf1-8715-2e1c90d2ed29'),
+        getitem_type='numpy', limits=None)
+
+    type_ds, file_format = task_generate_pickle_dataset(processed_dataset,
+                                                        output_dir_path=os.path.join(data_path, 'temp', 'processing',
+                                                                                     'pickle'))
+
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'pickle'))) == 2
+    assert type_ds == ProcessedDataset
+    assert file_format == 'pickle'
 
     shutil.rmtree(os.path.join(data_path, 'temp'))

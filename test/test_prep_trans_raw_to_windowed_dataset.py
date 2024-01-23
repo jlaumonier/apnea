@@ -16,7 +16,7 @@ def test_task_raw_to_windowed_run(base_directory, relative_path):
     shutil.copytree(src_data_repo_path, temp_data_repo_path)
 
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
-        cfg = compose(config_name="data-pipeline")
+        cfg = compose(config_name="data-pipeline-windowed")
         cfg.pipeline.data.dataset.source = '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'
 
         task_raw_to_windowed = Task(temp_data_repo_path, cfg)

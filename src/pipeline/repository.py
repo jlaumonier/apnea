@@ -2,7 +2,7 @@ import os  #
 import json
 import shutil
 import uuid
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from hydra import initialize_config_dir, compose
 from hydra.utils import get_original_cwd, instantiate
@@ -56,29 +56,30 @@ class Repository:
 
         self.valid_repo = self._valid_repository()
 
-    def bootstrap(self, source_dataset_path: str, source_dataset_type: type) -> uuid.UUID:
+    def bootstrap(self, source_dataset_path: str, source_dataset_type: type, file_format: str) -> uuid.UUID:
         """
         Bootstrop an empty repository with a given dataset
 
         @param source_dataset_path: the path of the source dataset to initialize the repository with
         @param source_dataset_type: type of the dataset (see src.data.dataset.*)
+        @param file_format: the format of the dataset files
         @return: the UUID of the dataset create by the bootstrap
         """
         new_uuid = uuid.uuid4()
         dest_data_path = os.path.join(self.path, 'datasets', str(new_uuid))
         shutil.copytree(source_dataset_path, dest_data_path)
 
-        self.commit_dataset(new_uuid, source_dataset_type, None)
+        self.commit_dataset(new_uuid, source_dataset_type, file_format=file_format, task_config=None)
 
         return new_uuid
 
-    def load_dataset(self, id: str, output_type: str, sub_dataset:str = None, args=None) -> Dataset:
+    def load_dataset(self, id: str, getitem_type: str, sub_dataset: str = None, args=None) -> Dataset:
         """
         Load a dataset from the repository
 
         @param id: the id of the dataset to load
-        @param output_type: the output type of the dataset (see src.data.dataset.*)
-        @param sub_dataset: TO BE DETEMINED
+        @param getitem_type: the type of the getitem of the dataset (dataframe or numpy)
+        @param sub_dataset: TO BE DETERMINED
         @param args: optional arguments to pass to the instance of the dataset
 
         @return: loaded the dataset
@@ -87,7 +88,7 @@ class Repository:
         cfg['data_path'] = os.path.join(self.path, 'datasets', id)
         if sub_dataset is not None:
             cfg['data_path'] = os.path.join(cfg['data_path'], sub_dataset)
-        cfg['output_type']  = output_type
+        cfg['getitem_type'] = getitem_type
         if args is not None:
             optional_cfg = OmegaConf.create(args)
             cfg = OmegaConf.merge(cfg, optional_cfg)
@@ -104,7 +105,8 @@ class Repository:
 
         return new_uuid, dest_data_path
 
-    def commit_dataset(self, guid: uuid.UUID, dataset_type: type, task_config: DictConfig) -> None:
+    def commit_dataset(self, guid: uuid.UUID, dataset_type: type, file_format: str,
+                       task_config: Optional[DictConfig]) -> None:
         """
         Commit the configurations of the new dataset to the repository
         :param guid: guid of the dataset
@@ -112,7 +114,8 @@ class Repository:
         :param task_config: configuration of the task used to create the dataset. None if the dataset is bootstraped
         """
         self.metadata['datasets'][str(guid)] = {'type': str(dataset_type.__module__) + '.' +
-                                                        str(dataset_type.__name__)}
+                                                        str(dataset_type.__name__),
+                                                'file_format': file_format}
         if task_config is not None:
             self.metadata['datasets'][str(guid)]['task_config'] = OmegaConf.to_container(task_config)
         json.dump(self.metadata, open(os.path.join(self.path, 'metadata_db.json'), "w"))

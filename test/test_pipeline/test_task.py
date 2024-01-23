@@ -17,7 +17,7 @@ def relative_path():
 def test_task_init(base_directory, relative_path):
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
         # config is relative to a module
-        cfg = compose(config_name="data-pipeline")
+        cfg = compose(config_name="data-pipeline-windowed")
         cfg.pipeline.data.dataset.source = '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'
 
         data_repo_path = os.path.join(base_directory, 'data', 'repository')
@@ -29,17 +29,17 @@ def test_task_init(base_directory, relative_path):
         assert type(simple_task.dest_id) == uuid.UUID
 
 
-def test_task_execute(base_directory, relative_path):
+def test_task_run(base_directory, relative_path):
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
         # config is relative to a module
-        cfg = compose(config_name="data-pipeline")
+        cfg = compose(config_name="data-pipeline-windowed")
 
         # create a temp repo
         os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
         data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repo')
         source_dataset_path = os.path.join(base_directory, 'data', 'raw')
         repo = Repository(data_repo_path)
-        guid = repo.bootstrap(source_dataset_path, RawOscarDataset)
+        guid = repo.bootstrap(source_dataset_path, RawOscarDataset, 'raw')
         cfg.pipeline.data.dataset.source = str(guid)
 
         simple_task = Task(data_repo_path, cfg)

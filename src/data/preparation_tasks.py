@@ -3,7 +3,7 @@ from tqdm import tqdm
 from p_tqdm import p_map
 import pickle
 import random
-from typing import Type
+from typing import Type, Tuple
 
 import pandas as pd
 import numpy as np
@@ -14,6 +14,7 @@ from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.datasets.pickle_dataset import PickleDataset
 from .utils import get_nb_events
 
+TASK_ERROR_INVALID_PARAM = 'One of the task parameters is invalid.'
 
 def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel: str) -> pd.DataFrame:
     """
@@ -61,7 +62,7 @@ def _sliding_window_iter(df, length, keep_last_incomplete):
 def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        length: int,
                                        keep_last_incomplete=True,
-                                       sort_index = False) -> list[pd.DataFrame]:
+                                       sort_index=False) -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
     Does not support overlap yet.
@@ -78,36 +79,47 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     return result
 
 
-def generate_all_rolling_window(oscar_dataset: Dataset,
-                                output_dir_path: str,
-                                length: int,
-                                keep_last_incomplete=True,
-                                output_format='feather') -> Type:
+def task_generate_all_rolling_window(oscar_dataset: Dataset,
+                                     output_dir_path: str,
+                                     length: int,
+                                     keep_last_incomplete=True) -> Tuple[Type, str]:
+    """
+    This method generates all rolling windows from a complete dataset
+    """
 
-    def  _process_element(idx_ts, ts):
+    def _process_element(idx_ts, ts):
         dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
-        output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
+        output_dir = os.path.join(output_dir_path, 'feather', 'df_' + str(idx_ts))
         os.makedirs(output_dir, exist_ok=True)
         for idx_df, df in enumerate(dfs):
             df_name = 'df_' + str(idx_ts) + '_' + str(idx_df)
-            # df.to_hdf('../data/processing/window_dataset_'+str(idx_ts)+'.h5', df_name, mode='a')
             df.reset_index(inplace=True)
             df.to_feather(os.path.join(output_dir, df_name + '.feather'))
 
-    #for idx_ts, ts in enumerate(oscar_dataset):
+    try:
+        assert oscar_dataset.getitem_type == 'dataframe'
+    except AssertionError:
+        raise AssertionError(TASK_ERROR_INVALID_PARAM)
+
+    # for idx_ts, ts in enumerate(oscar_dataset):
     #    _process_element(idx_ts, ts)
     p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
 
-    return ProcessedDataset
+    return ProcessedDataset, 'feather'
 
 
-def generate_pickle_dataset(oscar_dataset: Dataset,
-                            output_dir_path: str) -> Type:
+def task_generate_pickle_dataset(oscar_dataset: Dataset,
+                                 output_dir_path: str) -> Tuple[Type, str]:
     """
-    This method generates a piclke numpy dataset from windows feather dataset set as numpy
+    This method generates a piclke numpy dataset from feather dataset set as numpy
     :param oscar_dataset: processed dataset with numpy output
     :param output_dir_path: path of the pickle outputs
     """
+
+    try:
+        assert oscar_dataset.getitem_type == 'numpy'
+    except AssertionError:
+        raise AssertionError(TASK_ERROR_INVALID_PARAM)
 
     os.makedirs(output_dir_path, exist_ok=True)
     output_file_inputs = os.path.join(output_dir_path, 'inputs.pkl')
@@ -127,13 +139,13 @@ def generate_pickle_dataset(oscar_dataset: Dataset,
     with open(output_file_gt, 'wb') as f_gt:
         pickle.dump(ground_truths, f_gt)
 
-    return PickleDataset
+    return ProcessedDataset, 'pickle'
 
 
 def generate_balanced_dataset(oscar_dataset: Dataset,
                               output_dir_path: str,
                               output_format='feather',
-                              size: int=5) -> Type:
+                              size: int = 5) -> Tuple[Type, str]:
     """
     This method generates a processed feather dataset from windows feather dataset set dataframe output
     :param oscar_dataset: processed dataset with datafrace output
@@ -142,7 +154,7 @@ def generate_balanced_dataset(oscar_dataset: Dataset,
     :param size: size of number of positive class to choose. The number of negative class will be the same.
     """
 
-    def  _process_element(idx_ts, ts):
+    def _process_element(idx_ts, ts):
         output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
         os.makedirs(output_dir, exist_ok=True)
         df_name = 'df_' + str(idx_ts) + '_' + str(idx_ts)
@@ -162,7 +174,7 @@ def generate_balanced_dataset(oscar_dataset: Dataset,
     for idx_n in negative_choice:
         _process_element(idx_n, oscar_dataset[idx_n])
 
-    return ProcessedDataset
+    return ProcessedDataset, 'feather'
 
 
 def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
@@ -177,7 +189,8 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
     if output_events_merge:
         possible_apnea_events = output_events_merge
     else:
-        possible_apnea_events = [ChannelID.CPAP_ClearAirway, ChannelID.CPAP_Obstructive, ChannelID.CPAP_Hypopnea, ChannelID.CPAP_Apnea]
+        possible_apnea_events = [ChannelID.CPAP_ClearAirway, ChannelID.CPAP_Obstructive, ChannelID.CPAP_Hypopnea,
+                                 ChannelID.CPAP_Apnea]
     possible_apnea_events_str = [c[5] for c in CHANNELS if c[1] in possible_apnea_events]
     events_in_origin = [i for i in result.columns if i in possible_apnea_events_str]
     if len(events_in_origin) == 0:
@@ -196,10 +209,10 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
     return result
 
 
-def split_dataset(oscar_dataset: Dataset,
-                  output_dir_path: str,
-                  train_ratio: float,
-                  valid_ratio: float) -> Type:
+def generate_split_dataset(oscar_dataset: Dataset,
+                           output_dir_path: str,
+                           train_ratio: float,
+                           valid_ratio: float) -> Type:
     """
     This function splits the dataset into training, validation and test sets
     """
@@ -226,8 +239,8 @@ def split_dataset(oscar_dataset: Dataset,
                                        limits=slice(idx_tvt_set[1] + 1, idx_tvt_set[2]),
                                        data_path=oscar_dataset.data_path)
 
-    generate_pickle_dataset(split_dataset_train, os.path.join(output_dir_path, 'train'))
-    generate_pickle_dataset(split_dataset_valid, os.path.join(output_dir_path, 'valid'))
-    generate_pickle_dataset(split_dataset_test, os.path.join(output_dir_path, 'test'))
+    task_generate_pickle_dataset(split_dataset_train, os.path.join(output_dir_path, 'train'))
+    task_generate_pickle_dataset(split_dataset_valid, os.path.join(output_dir_path, 'valid'))
+    task_generate_pickle_dataset(split_dataset_test, os.path.join(output_dir_path, 'test'))
 
     return PickleDataset
