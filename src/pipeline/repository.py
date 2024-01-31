@@ -79,7 +79,7 @@ class Repository:
 
         @param id: the id of the dataset to load
         @param getitem_type: the type of the getitem of the dataset (dataframe or numpy)
-        @param sub_dataset: TO BE DETERMINED
+        @param sub_dataset: NOT USEFULL. The preparation task must take it into account
         @param args: optional arguments to pass to the instance of the dataset
 
         @return: loaded the dataset

@@ -1,5 +1,5 @@
 defaults:
-  - pipeline/data/dataset: dataframe
+  - pipeline/data/dataset: numpy
   - pipeline/data/tasks: generate_split_dataset
   - _self_
 

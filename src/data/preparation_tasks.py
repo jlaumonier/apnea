@@ -3,7 +3,7 @@ from tqdm import tqdm
 from p_tqdm import p_map
 import pickle
 import random
-from typing import Type, Tuple
+from typing import Type, Tuple, Optional, List
 
 import pandas as pd
 import numpy as np
@@ -15,6 +15,7 @@ from src.data.datasets.pickle_dataset import PickleDataset
 from .utils import get_nb_events
 
 TASK_ERROR_INVALID_PARAM = 'One of the task parameters is invalid.'
+
 
 def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel: str) -> pd.DataFrame:
     """
@@ -76,6 +77,38 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     else:
         sorted_df = df
     result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete)]
+    return result
+
+
+def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
+    """
+    Generate annotations from a dataframe containing annotation at one point only.
+    :param df: source dataframe used to generate annotation.
+    :param length_event: length of the events to complete annotations. format in Offset aliases. \
+     None for keeping annotation as-is (default).
+    :param output_events_merge: list of ChannelID (not value of ChannelID) to merge to become the ApneaEvent. None for all apnea events
+    """
+    result = df.copy()
+    if output_events_merge:
+        possible_apnea_events = output_events_merge
+    else:
+        possible_apnea_events = [ChannelID.CPAP_ClearAirway, ChannelID.CPAP_Obstructive, ChannelID.CPAP_Hypopnea,
+                                 ChannelID.CPAP_Apnea]
+    possible_apnea_events_str = [c[5] for c in CHANNELS if c[1] in possible_apnea_events]
+    events_in_origin = [i for i in result.columns if i in possible_apnea_events_str]
+    if len(events_in_origin) == 0:
+        result['ApneaEvent'] = 0.0
+    else:
+        result['ApneaEvent'] = result[events_in_origin].sum(axis=1)
+        result['ApneaEvent'] = result['ApneaEvent'].apply(lambda x: 1 if (not pd.isnull(x)) and (x != 0) else np.nan)
+        result['ApneaEvent'].fillna(0, inplace=True)
+        if length_event is not None:
+            list_index_annot = result.index[result['ApneaEvent'] == 1].tolist()
+            for annot_index in list_index_annot:
+                indexes = result.index[((result.index <= annot_index) &
+                                        (result.index >= (annot_index - pd.to_timedelta(length_event))))]
+                result.loc[indexes, 'ApneaEvent'] = 1
+
     return result
 
 
@@ -142,24 +175,32 @@ def task_generate_pickle_dataset(oscar_dataset: Dataset,
     return ProcessedDataset, 'pickle'
 
 
-def generate_balanced_dataset(oscar_dataset: Dataset,
-                              output_dir_path: str,
-                              output_format='feather',
-                              size: int = 5) -> Tuple[Type, str]:
+def task_generate_balanced_dataset(oscar_dataset: Dataset,
+                                   output_dir_path: str,
+                                   output_format='same',
+                                   size: int = 5) -> Tuple[Type, str]:
     """
-    This method generates a processed feather dataset from windows feather dataset set dataframe output
-    :param oscar_dataset: processed dataset with datafrace output
-    :param output_dir_path: path of the feather outputs files
-    :param output_format: 'feather' only
+    This method generates a balanced dataset
+    :param oscar_dataset: processed dataset with datafrace or numpy output
+    :param output_dir_path: path of the outputs files
+    :param output_format: 'same'. will output the same format as the input format
     :param size: size of number of positive class to choose. The number of negative class will be the same.
+    :param apply_to_sub_ds: the task is applied to a list of sub datasets. None if the dataset has no sub datasets
     """
 
     def _process_element(idx_ts, ts):
-        output_dir = os.path.join(output_dir_path, output_format, 'df_' + str(idx_ts))
-        os.makedirs(output_dir, exist_ok=True)
-        df_name = 'df_' + str(idx_ts) + '_' + str(idx_ts)
-        ts.reset_index(inplace=True)
-        ts.to_feather(os.path.join(output_dir, df_name + '.feather'))
+        if output_format == 'same':
+            if oscar_dataset.file_format == 'feather':
+                output_dir = os.path.join(output_dir_path, oscar_dataset.file_format, 'df_' + str(idx_ts))
+                os.makedirs(output_dir, exist_ok=True)
+                df_name = 'df_' + str(idx_ts) + '_' + str(idx_ts)
+                ts.reset_index(inplace=True)
+                ts.to_feather(os.path.join(output_dir, df_name + '.feather'))
+
+    try:
+        assert oscar_dataset.getitem_type == 'numpy' or oscar_dataset.getitem_type == 'dataframe'
+    except AssertionError:
+        raise AssertionError(TASK_ERROR_INVALID_PARAM)
 
     _, events = get_nb_events(oscar_dataset)
     index_positive = [idx for idx, e in enumerate(events) if e == 1]
@@ -169,53 +210,64 @@ def generate_balanced_dataset(oscar_dataset: Dataset,
     positive_choice = random.sample(index_positive, size)
     negative_choice = random.sample(index_negative, size)
 
-    for idx_p in positive_choice:
-        _process_element(idx_p, oscar_dataset[idx_p])
-    for idx_n in negative_choice:
-        _process_element(idx_n, oscar_dataset[idx_n])
+    if oscar_dataset.file_format == 'feather':
+        for idx_p in positive_choice:
+            _process_element(idx_p, oscar_dataset[idx_p])
+        for idx_n in negative_choice:
+            _process_element(idx_n, oscar_dataset[idx_n])
+    if oscar_dataset.file_format == 'pickle':
+        # TODO refactor because it is almost a copy of task_generate_pickle_dataset()
+        os.makedirs(output_dir_path, exist_ok=True)
+        output_file_inputs = os.path.join(output_dir_path, 'inputs.pkl')
+        output_file_gt = os.path.join(output_dir_path, 'gt.pkl')
+        inputs = []
+        ground_truths = []
+        input, gt = oscar_dataset[positive_choice]
+        inputs.extend(input)
+        ground_truths.extend(gt)
 
-    return ProcessedDataset, 'feather'
+        input, gt = oscar_dataset[negative_choice]
+        inputs.extend(input)
+        ground_truths.extend(gt)
+
+        inputs = np.array(inputs)
+        ground_truths = np.array(ground_truths)
+        with open(output_file_inputs, 'wb') as f_input:
+            pickle.dump(inputs, f_input)
+        with open(output_file_gt, 'wb') as f_gt:
+            pickle.dump(ground_truths, f_gt)
+
+    return ProcessedDataset, oscar_dataset.file_format
 
 
-def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merge=None):
+def task_generate_balanced_subdataset(oscar_dataset: Dataset,
+                                      output_dir_path: str,
+                                      output_format='same',
+                                      size: int = 5,
+                                      apply_to_sub_ds: Optional[List[str]] = None) -> Tuple[Type, str]:
     """
-    Generate annotations from a dataframe containing annotation at one point only.
-    :param df: source dataframe used to generate annotation.
-    :param length_event: length of the events to complete annotations. format in Offset aliases. \
-     None for keeping annotation as-is (default).
-    :param output_events_merge: list of ChannelID (not value of ChannelID) to merge to become the ApneaEvent. None for all apnea events
+    This method generates a processed feather dataset from windows feather dataset set dataframe output
+    :param oscar_dataset: processed dataset with datafrace output containing subdataset
+    :param output_dir_path: path of the feather outputs files
+    :param output_format: 'same'. will output the same format as the input format
+    :param size: size of number of positive class to choose. The number of negative class will be the same.
+    :param apply_to_sub_ds: the task is applied to a list of sub datasets. None if the dataset has no sub datasets
     """
-    result = df.copy()
-    if output_events_merge:
-        possible_apnea_events = output_events_merge
-    else:
-        possible_apnea_events = [ChannelID.CPAP_ClearAirway, ChannelID.CPAP_Obstructive, ChannelID.CPAP_Hypopnea,
-                                 ChannelID.CPAP_Apnea]
-    possible_apnea_events_str = [c[5] for c in CHANNELS if c[1] in possible_apnea_events]
-    events_in_origin = [i for i in result.columns if i in possible_apnea_events_str]
-    if len(events_in_origin) == 0:
-        result['ApneaEvent'] = 0.0
-    else:
-        result['ApneaEvent'] = result[events_in_origin].sum(axis=1)
-        result['ApneaEvent'] = result['ApneaEvent'].apply(lambda x: 1 if (not pd.isnull(x)) and (x != 0) else np.nan)
-        result['ApneaEvent'].fillna(0, inplace=True)
-        if length_event is not None:
-            list_index_annot = result.index[result['ApneaEvent'] == 1].tolist()
-            for annot_index in list_index_annot:
-                indexes = result.index[((result.index <= annot_index) &
-                                        (result.index >= (annot_index - pd.to_timedelta(length_event))))]
-                result.loc[indexes, 'ApneaEvent'] = 1
-
-    return result
 
 
-def generate_split_dataset(oscar_dataset: Dataset,
-                           output_dir_path: str,
-                           train_ratio: float,
-                           valid_ratio: float) -> Type:
+
+def task_generate_split_dataset(oscar_dataset: Dataset,
+                                output_dir_path: str,
+                                train_ratio: float,
+                                valid_ratio: float) -> Tuple[Type, str]:
     """
     This function splits the dataset into training, validation and test sets
     """
+
+    try:
+        assert oscar_dataset.getitem_type == 'numpy'
+    except AssertionError:
+        raise AssertionError(TASK_ERROR_INVALID_PARAM)
 
     len_complete_dataset = len(oscar_dataset)
     # take only a subset of complete dataset
@@ -228,19 +280,19 @@ def generate_split_dataset(oscar_dataset: Dataset,
     idx_tvt_set = [int(i) for i in (cumul_perc_split * len_complete_dataset)]
     print(idx_tvt_set)
 
-    split_dataset_train = PickleDataset(output_type='numpy',
-                                        limits=slice(0, idx_tvt_set[0]),
-                                        data_path=oscar_dataset.data_path)
-    split_dataset_valid = PickleDataset(output_type='numpy',
-                                        limits=slice(idx_tvt_set[0] + 1, idx_tvt_set[1]),
-                                        data_path=oscar_dataset.data_path
-                                        )
-    split_dataset_test = PickleDataset(output_type='numpy',
-                                       limits=slice(idx_tvt_set[1] + 1, idx_tvt_set[2]),
-                                       data_path=oscar_dataset.data_path)
+    split_dataset_train = ProcessedDataset(getitem_type='numpy',
+                                           limits=slice(0, idx_tvt_set[0]),
+                                           data_path=oscar_dataset.data_path)
+    split_dataset_valid = ProcessedDataset(getitem_type='numpy',
+                                           limits=slice(idx_tvt_set[0] + 1, idx_tvt_set[1]),
+                                           data_path=oscar_dataset.data_path
+                                           )
+    split_dataset_test = ProcessedDataset(getitem_type='numpy',
+                                          limits=slice(idx_tvt_set[1] + 1, idx_tvt_set[2]),
+                                          data_path=oscar_dataset.data_path)
 
     task_generate_pickle_dataset(split_dataset_train, os.path.join(output_dir_path, 'train'))
     task_generate_pickle_dataset(split_dataset_valid, os.path.join(output_dir_path, 'valid'))
     task_generate_pickle_dataset(split_dataset_test, os.path.join(output_dir_path, 'test'))
 
-    return PickleDataset
+    return ProcessedDataset, 'pickle'

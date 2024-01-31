@@ -9,7 +9,7 @@ def relative_path():
     yield '../../'
 
 def test___getitem___feather_dataframe(base_directory):
-    data_path = os.path.join(base_directory, 'data', 'repository', 'datasets', 'e81da40-41a1-4f9b-9bba-41de71b0ebd9')
+    data_path = os.path.join(base_directory, 'data', 'repository', 'datasets', '9e81da40-41a1-4f9b-9bba-41de71b0ebd9')
     ds = ProcessedDataset(data_path=data_path, getitem_type='dataframe')
 
     assert len(ds) == 1494

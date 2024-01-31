@@ -12,7 +12,7 @@ from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.preparation_tasks import align_channels, \
     generate_rolling_window_dataframes, generate_annotations, task_generate_all_rolling_window, \
-    generate_balanced_dataset, task_generate_pickle_dataset
+    task_generate_balanced_dataset, task_generate_pickle_dataset, task_generate_split_dataset
 
 
 @pytest.fixture(scope="function")
@@ -329,29 +329,60 @@ def test_task_generate_all_rolling_window_output_feather_df(base_directory):
     shutil.rmtree(os.path.join(data_path, 'temp'))
 
 
-def test_generate_balanced_dataset(base_directory):
+def test_task_generate_balanced_dataset_dataframe_feather(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
 
     processed_dataset = ProcessedDataset(
-        data_path=os.path.join(data_path, 'repository', 'datasets', '7d8965a5-523c-41e6-8284-8024b7036267'),
+        data_path=os.path.join(data_path, 'repository', 'datasets', '9e81da40-41a1-4f9b-9bba-41de71b0ebd9'),
         getitem_type='dataframe', limits=None)
 
-    generate_balanced_dataset(oscar_dataset=processed_dataset,
-                              output_format='feather',
-                              size=1,
-                              output_dir_path=os.path.join(data_path, 'temp', 'processing', 'overfitting'))
+    type_ds, file_format = task_generate_balanced_dataset(oscar_dataset=processed_dataset,
+                                                          output_format='same',
+                                                          size=1,
+                                                          output_dir_path=os.path.join(data_path, 'temp', 'processing',
+                                                                                       'balanced'))
 
-    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'overfitting', 'feather'))) == 2
+    assert type_ds == ProcessedDataset
+    assert file_format == processed_dataset.file_format
+
+    list_dir = os.listdir(os.path.join(data_path, 'temp', 'processing', 'balanced', 'feather'))
+    assert len(list_dir) == 2
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'balanced', 'feather', list_dir[0]))) == 1
 
     shutil.rmtree(os.path.join(data_path, 'temp'))
 
+
+def test_task_generate_balanced_dataset_numpy_pickle(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
+
+    processed_dataset = ProcessedDataset(
+        data_path=os.path.join(data_path, 'repository', 'datasets', 'a67ff056-fd10-4b41-bd1a-104f9e23279e'),
+        getitem_type='numpy', limits=None)
+
+    type_ds, file_format = task_generate_balanced_dataset(oscar_dataset=processed_dataset,
+                                                          output_format='same',
+                                                          size=1,
+                                                          output_dir_path=os.path.join(data_path, 'temp', 'processing',
+                                                                                       'balanced'))
+
+    assert type_ds == ProcessedDataset
+    assert file_format == processed_dataset.file_format
+
+    list_files = os.listdir(os.path.join(data_path, 'temp', 'processing', 'balanced'))
+    list_files.sort()
+    assert len(list_files) == 2
+    assert 'gt.pkl' in os.path.join(data_path, 'temp', 'processing', 'balanced', list_files[0])
+    assert 'inputs.pkl' in os.path.join(data_path, 'temp', 'processing', 'balanced', list_files[1])
+
+    shutil.rmtree(os.path.join(data_path, 'temp'))
 
 def test_task_generate_pickle(base_directory):
     data_path = os.path.join(base_directory, 'data')
     os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
     processed_dataset = ProcessedDataset(
-        data_path=os.path.join(data_path, 'repository', 'datasets', '2438f437-d006-4cf1-8715-2e1c90d2ed29'),
+        data_path=os.path.join(data_path, 'repository', 'datasets', '9e81da40-41a1-4f9b-9bba-41de71b0ebd9'),
         getitem_type='numpy', limits=None)
 
     type_ds, file_format = task_generate_pickle_dataset(processed_dataset,
@@ -359,6 +390,26 @@ def test_task_generate_pickle(base_directory):
                                                                                      'pickle'))
 
     assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'pickle'))) == 2
+    assert type_ds == ProcessedDataset
+    assert file_format == 'pickle'
+
+    shutil.rmtree(os.path.join(data_path, 'temp'))
+
+
+def test_task_generate_split_dataset(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
+    processed_dataset = ProcessedDataset(
+        data_path=os.path.join(data_path, 'repository', 'datasets', 'a67ff056-fd10-4b41-bd1a-104f9e23279e'),
+        getitem_type='numpy', limits=None)
+
+    type_ds, file_format = task_generate_split_dataset(processed_dataset,
+                                                       output_dir_path=os.path.join(data_path, 'temp', 'processing',
+                                                                                    'split'),
+                                                       train_ratio=0.8,
+                                                       valid_ratio=0.1)
+
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'split'))) == 3
     assert type_ds == ProcessedDataset
     assert file_format == 'pickle'
 

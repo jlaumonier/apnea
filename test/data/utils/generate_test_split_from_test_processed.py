@@ -13,7 +13,7 @@ def main():
 
     with initialize(version_base=None, config_path=os.path.join(relative_path, 'conf')):
         cfg = compose(config_name="data-pipeline-split")
-        cfg.pipeline.data.dataset.source = '2438f437-d006-4cf1-8715-2e1c90d2ed29'
+        cfg.pipeline.data.dataset.source = 'a67ff056-fd10-4b41-bd1a-104f9e23279e'
 
         task_split = Task(src_data_repo_path, cfg)
         task_split.run(cfg)

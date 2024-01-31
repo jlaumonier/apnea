@@ -49,7 +49,7 @@ class RepoInfo(Static):
 
     def __init__(self):
         super().__init__()
-        #data_repo_path = os.path.join('data', 'repository')
+        # data_repo_path = os.path.join('data', 'repository')
         data_repo_path = '/home/julien/prog/apnea/test/data/repository'
         self.repository = Repository(data_repo_path)
         self.dataset_info = Pretty({})

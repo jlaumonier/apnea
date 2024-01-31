@@ -1,3 +1,3 @@
 source: ??
 sub_src: ??
-output_type: dataframe # dataframe, numpy
+getitem_type: dataframe # dataframe, numpy
