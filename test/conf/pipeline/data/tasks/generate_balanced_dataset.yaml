@@ -1,0 +1,5 @@
+task_func:
+  _target_: src.data.preparation_tasks.task_generate_balanced_dataset
+  size: 5
+  oscar_dataset: ??
+  output_dir_path: ??

@@ -205,8 +205,8 @@ def task_generate_balanced_dataset(oscar_dataset: Dataset,
     _, events = get_nb_events(oscar_dataset)
     index_positive = [idx for idx, e in enumerate(events) if e == 1]
     index_negative = [idx for idx, e in enumerate(events) if e == 0]
-    print(len(index_positive))
-    print(len(index_negative))
+    print('+', len(index_positive))
+    print('-', len(index_negative))
     positive_choice = random.sample(index_positive, size)
     negative_choice = random.sample(index_negative, size)
 
@@ -238,21 +238,6 @@ def task_generate_balanced_dataset(oscar_dataset: Dataset,
             pickle.dump(ground_truths, f_gt)
 
     return ProcessedDataset, oscar_dataset.file_format
-
-
-def task_generate_balanced_subdataset(oscar_dataset: Dataset,
-                                      output_dir_path: str,
-                                      output_format='same',
-                                      size: int = 5,
-                                      apply_to_sub_ds: Optional[List[str]] = None) -> Tuple[Type, str]:
-    """
-    This method generates a processed feather dataset from windows feather dataset set dataframe output
-    :param oscar_dataset: processed dataset with datafrace output containing subdataset
-    :param output_dir_path: path of the feather outputs files
-    :param output_format: 'same'. will output the same format as the input format
-    :param size: size of number of positive class to choose. The number of negative class will be the same.
-    :param apply_to_sub_ds: the task is applied to a list of sub datasets. None if the dataset has no sub datasets
-    """
 
 
 

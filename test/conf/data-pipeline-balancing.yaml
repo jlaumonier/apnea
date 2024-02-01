@@ -1,0 +1,8 @@
+defaults:
+  - pipeline/data/dataset: numpy
+  - pipeline/data/tasks: generate_balanced_dataset
+  - _self_
+
+hydra:
+  run:
+    dir: ../outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
