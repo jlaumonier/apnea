@@ -2,12 +2,14 @@ import os  #
 import json
 import shutil
 import uuid
+import datetime
 from typing import List, Tuple, Optional
 
 from hydra import initialize_config_dir, compose
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import OmegaConf, DictConfig
 from torch.utils.data import Dataset
+import git
 
 
 class Repository:
@@ -113,9 +115,13 @@ class Repository:
         :param dataset_type: type of the dataset (see src.data.dataset.*)
         :param task_config: configuration of the task used to create the dataset. None if the dataset is bootstraped
         """
+        repo = git.Repo(search_parent_directories=True)
+        sha = repo.head.object.hexsha
         self.metadata['datasets'][str(guid)] = {'type': str(dataset_type.__module__) + '.' +
                                                         str(dataset_type.__name__),
-                                                'file_format': file_format}
+                                                'file_format': file_format,
+                                                'dh_commit': str(datetime.datetime.now().isoformat()),
+                                                'git_commit_hash': sha}
         if task_config is not None:
             self.metadata['datasets'][str(guid)]['task_config'] = OmegaConf.to_container(task_config)
         json.dump(self.metadata, open(os.path.join(self.path, 'metadata_db.json'), "w"))

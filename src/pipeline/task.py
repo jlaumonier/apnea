@@ -38,14 +38,20 @@ class Task:
         file_format = None
         # TODO os.path.join(self.repo.path, 'datasets', str(self.src_id)) should be given by repo ??
         list_sub_ds_path = os.listdir(os.path.join(self.repo.path, 'datasets', str(self.src_id)))
-        for p in list_sub_ds_path:
-            if p in self.sub_srcs:
-                ds = [src_ds for src_ds in self.src_dataset if src_ds[0]==p][0]
-                dataset_type, file_format = call(cfg.pipeline.data.tasks.task_func,
-                                                 oscar_dataset=ds[1],
-                                                 output_dir_path=os.path.join(dataset_path, ds[0]))
-            else:
-                shutil.copytree(os.path.join(self.repo.path, 'datasets', str(self.src_id), p),
-                                os.path.join(dataset_path, p))
+        if self.sub_srcs != [None]:
+            for p in list_sub_ds_path:
+                if p in self.sub_srcs:
+                    ds = [src_ds for src_ds in self.src_dataset if src_ds[0]==p][0]
+                    dataset_type, file_format = call(cfg.pipeline.data.tasks.task_func,
+                                                     oscar_dataset=ds[1],
+                                                     output_dir_path=os.path.join(dataset_path, ds[0]))
+                else:
+                    shutil.copytree(os.path.join(self.repo.path, 'datasets', str(self.src_id), p),
+                                    os.path.join(dataset_path, p))
+        else:
+            ds = self.src_dataset[0]
+            dataset_type, file_format = call(cfg.pipeline.data.tasks.task_func,
+                                             oscar_dataset=ds[1],
+                                             output_dir_path=os.path.join(dataset_path))
         self.repo.commit_dataset(guid, dataset_type, file_format, task_config=cfg)
         self.dest_id = guid

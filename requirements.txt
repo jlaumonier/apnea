@@ -24,3 +24,4 @@ wfdb
 ipytree
 ipy_table
 textual
+gitpython
