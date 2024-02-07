@@ -57,10 +57,16 @@ def main(conf):
     data_repo_path = os.path.join('data', 'repository')
     id_split_dataset = conf['pipeline']['training']['dataset']['source']
 
+    repo = Repository(data_repo_path)
+
+    processed_dataset_train = repo.load_dataset(id_split_dataset, 'numpy', 'train')
+    processed_dataset_valid = repo.load_dataset(id_split_dataset, 'numpy', 'valid')
+    processed_dataset_test = repo.load_dataset(id_split_dataset, 'numpy', 'test')
+
     # TODO changer pour utiliser repo.load_dataset(sub_dataset)
-    processed_dataset_train = load_split_dataset(id_split_dataset, 'numpy', 'train', data_repo_path)
-    processed_dataset_valid = load_split_dataset(id_split_dataset, 'numpy', 'valid', data_repo_path)
-    processed_dataset_test = load_split_dataset(id_split_dataset, 'numpy', 'test', data_repo_path)
+    #processed_dataset_train = load_split_dataset(id_split_dataset, 'numpy', 'train', data_repo_path)
+    #processed_dataset_valid = load_split_dataset(id_split_dataset, 'numpy', 'valid', data_repo_path)
+    #processed_dataset_test = load_split_dataset(id_split_dataset, 'numpy', 'test', data_repo_path)
 
     sampler_train = None
     if conf.pipeline.training.balancing.balancing:
@@ -114,6 +120,9 @@ def main(conf):
               callbacks=[mlflow_logger])
 
     exp.test(test_loader)
+
+    print('confmat on train')
+    train_conf_mat = conf_mat(train_loader, model, device)
 
     print('confmat on valid')
     valid_conf_mat = conf_mat(valid_loader, model, device)

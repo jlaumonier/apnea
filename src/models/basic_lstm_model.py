@@ -8,8 +8,8 @@ import torch
 class BasicLSTMModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.lstm = nn.LSTM(input_size=1, hidden_size=10, num_layers=1, batch_first=True)
-        self.fc1 = nn.Linear(10, 1)
+        self.lstm = nn.LSTM(input_size=1, hidden_size=2, num_layers=1, batch_first=True)
+        self.fc1 = nn.Linear(2, 1)
         self.sigmo = nn.Sigmoid()
         self.padding_value = -100.0
 

@@ -1,5 +1,5 @@
 batch_size: 64
-num_epochs: 2500
+num_epochs: 1000
 initial_learning_rate: 0.001
 loss:
   _target_: torch.nn.MSELoss
