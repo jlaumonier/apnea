@@ -50,13 +50,12 @@ class RepoInfo(Static):
     def __init__(self):
         super().__init__()
         data_repo_path = os.path.join('data', 'repository')
-        # data_repo_path = '/home/julien/prog/apnea/test/data/repository'
         self.repository = Repository(data_repo_path)
         self.dataset_info = Pretty({})
         self.repo_tree = Tree("")
         self.highlighted_node = None
 
-    def _fill_tree(self):
+    def fill_tree(self):
         def add_node(name, node, sub_tree):
             if isinstance(sub_tree, dict):
                 node.set_label(name)
@@ -86,7 +85,7 @@ class RepoInfo(Static):
         yield self.dataset_info
 
     def _on_mount(self, event: events.Mount) -> None:
-        self._fill_tree()
+        self.fill_tree()
 
     def on_tree_node_highlighted(self, event:Tree.NodeSelected):
         n = event.node
@@ -112,7 +111,7 @@ class RepoApp(App):
     async def action_delete_node(self):
         if await self.push_screen_wait(QuestionScreen("Delete highlighted datasets ?"),):
             self.repo_info.repository.remove_dataset(self.repo_info.highlighted_node)
-            self.repo_info._fill_tree()
+            self.repo_info.fill_tree()
 
 
 if __name__ == "__main__":

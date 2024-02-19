@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 
 from pyapnea.oscar.oscar_constants import ChannelID
+from pyapnea.pytorch.raw_oscar_dataset import RawOscarDataset
 
-from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.preparation_tasks import align_channels, \
     generate_rolling_window_dataframes, generate_annotations, task_generate_all_rolling_window, \

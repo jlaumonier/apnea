@@ -3,9 +3,10 @@ import shutil
 import pytest
 
 from omegaconf import OmegaConf
+from pyapnea.pytorch.raw_oscar_dataset import RawOscarDataset
 
 from src.pipeline.repository import Repository
-from src.data.datasets.raw_oscar_dataset import RawOscarDataset
+
 
 @pytest.fixture(scope="function")
 def relative_path():
@@ -28,6 +29,7 @@ def test_repository_init_create_repo(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
+
 def test_repository_init_repo_loaded(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
 
@@ -35,6 +37,7 @@ def test_repository_init_repo_loaded(base_directory):
 
     assert repo.valid_repo == 0
     assert '8b663706-ab51-4a9a-9a66-eb9ac2c135f3' in repo.metadata['datasets'].keys()
+
 
 def test_repository_boostrap_copy(base_directory):
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
@@ -46,18 +49,19 @@ def test_repository_boostrap_copy(base_directory):
     repo = Repository(data_repo_path)
     guid = repo.bootstrap(source_dataset_path, RawOscarDataset, file_format)
 
-    conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
-    expected_type = 'src.data.datasets.raw_oscar_dataset.RawOscarDataset'
+    conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
+    expected_type = 'pyapnea.pytorch.raw_oscar_dataset.RawOscarDataset'
 
     assert str(guid) in repo.metadata['datasets'].keys()
     assert repo.metadata['datasets'][str(guid)]['type'] == expected_type
     assert repo.metadata['datasets'][str(guid)]['file_format'] == file_format
     assert os.path.exists(os.path.join(data_repo_path, 'datasets', str(guid)))
-    assert os.path.isfile(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
+    assert os.path.isfile(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
     assert conf['_target_'] == expected_type
     assert repo.valid_repo == 0
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
 
 def test_load_dataset(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
@@ -65,17 +69,19 @@ def test_load_dataset(base_directory):
     repo = Repository(data_repo_path)
     dataset = repo.load_dataset('8b663706-ab51-4a9a-9a66-eb9ac2c135f3', 'dataframe')
 
-    assert dataset.__class__.__name__ ==  'RawOscarDataset'
+    assert dataset.__class__.__name__ == 'RawOscarDataset'
     assert len(dataset) == 2
+
 
 def test_load_dataset_sub_dataset(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
 
     repo = Repository(data_repo_path)
-    dataset = repo.load_dataset('eb0e1bf4-88cf-4cfb-850c-ad11092af8f7', 'dataframe', sub_dataset='train')
+    dataset = repo.load_dataset('42d374a5-5644-479a-89f0-651b413dd275', 'dataframe', sub_dataset='train')
 
-    assert dataset.__class__.__name__ == 'PickleDataset'
+    assert dataset.__class__.__name__ == 'ProcessedDataset'
     assert len(dataset) == 1195
+
 
 def test_create_dataset(base_directory):
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
@@ -88,6 +94,7 @@ def test_create_dataset(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
+
 def test_commit_dataset(base_directory):
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
     data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
@@ -99,14 +106,14 @@ def test_commit_dataset(base_directory):
 
     # create a fake dataset content
     os.makedirs(dest_data_path)
-    fp = open(os.path.join(dest_data_path,'temp.txt'), 'w')
+    fp = open(os.path.join(dest_data_path, 'temp.txt'), 'w')
     fp.write('first line')
     fp.close()
 
     repo.commit_dataset(guid, RawOscarDataset, file_format, task_config)
 
-    assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
-    tested_conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid)+'.yaml'))
+    assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
+    tested_conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
     assert 'RawOscarDataset' in tested_conf['_target_']
     assert tested_conf['data_path'] == '??'
     assert str(guid) in repo.metadata['datasets']
@@ -120,13 +127,14 @@ def test_commit_dataset(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
+
 def test_remove_dataset_leaf(base_directory):
     src_data_repo_path = os.path.join(base_directory, 'data', 'repository')
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
     temp_data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
     shutil.copytree(src_data_repo_path, temp_data_repo_path)
     repo = Repository(temp_data_repo_path)
-    uuid_to_remove = 'eb0e1bf4-88cf-4cfb-850c-ad11092af8f7'
+    uuid_to_remove = '42d374a5-5644-479a-89f0-651b413dd275'
 
     repo.remove_dataset(uuid_to_remove)
 
@@ -141,16 +149,17 @@ def test_remove_dataset_leaf(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
+
 def test_remove_dataset_branch(base_directory):
     src_data_repo_path = os.path.join(base_directory, 'data', 'repository')
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
     temp_data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
     shutil.copytree(src_data_repo_path, temp_data_repo_path)
     repo = Repository(temp_data_repo_path)
-    uuid_to_remove = '7d8965a5-523c-41e6-8284-8024b7036267'
-    expected_removed_uuid = ['7d8965a5-523c-41e6-8284-8024b7036267',
-                             '3b96d5a7-0767-41b9-962e-ea4de5d56827',
-                             'eb0e1bf4-88cf-4cfb-850c-ad11092af8f7']
+    uuid_to_remove = 'a67ff056-fd10-4b41-bd1a-104f9e23279e'
+    expected_removed_uuid = ['a67ff056-fd10-4b41-bd1a-104f9e23279e',
+                             '42d374a5-5644-479a-89f0-651b413dd275',
+                             '9f234011-4074-4a95-8b4b-77d47258bba7']
 
     repo.remove_dataset(uuid_to_remove)
 
@@ -167,14 +176,16 @@ def test_remove_dataset_branch(base_directory):
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
+
 def test_get_list_tree_chain(base_directory):
     data_repo_path = os.path.join(base_directory, 'data', 'repository')
     repo = Repository(data_repo_path)
 
-    expected_list = [('8b663706-ab51-4a9a-9a66-eb9ac2c135f3',  None),
-                     ('7d8965a5-523c-41e6-8284-8024b7036267', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'),
-                     ('3b96d5a7-0767-41b9-962e-ea4de5d56827', '7d8965a5-523c-41e6-8284-8024b7036267'),
-                     ('eb0e1bf4-88cf-4cfb-850c-ad11092af8f7', '3b96d5a7-0767-41b9-962e-ea4de5d56827')]
+    expected_list = [('8b663706-ab51-4a9a-9a66-eb9ac2c135f3', None),
+                     ('9e81da40-41a1-4f9b-9bba-41de71b0ebd9', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'),
+                     ('a67ff056-fd10-4b41-bd1a-104f9e23279e', '9e81da40-41a1-4f9b-9bba-41de71b0ebd9'),
+                     ('42d374a5-5644-479a-89f0-651b413dd275', 'a67ff056-fd10-4b41-bd1a-104f9e23279e'),
+                     ('9f234011-4074-4a95-8b4b-77d47258bba7', '42d374a5-5644-479a-89f0-651b413dd275')]
 
     result = repo.get_list_tree_chain()
 

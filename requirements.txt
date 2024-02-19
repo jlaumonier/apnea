@@ -1,5 +1,5 @@
 wheel
-pyapnea>=0.0.4
+pyapnea>=0.0.5a
 plotly
 pandas
 dash

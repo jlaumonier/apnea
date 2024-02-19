@@ -3,7 +3,8 @@ import hydra
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 
 from src.pipeline.repository import Repository
-from src.data.datasets.raw_oscar_dataset import RawOscarDataset
+from pyapnea.pytorch.raw_oscar_dataset import RawOscarDataset
+
 
 @hydra.main(config_path="../conf", config_name="data-pipeline-bootstrap", version_base=None)
 def main(conf):

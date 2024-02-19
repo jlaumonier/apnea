@@ -1,2 +1,2 @@
-_target_: src.data.datasets.raw_oscar_dataset.RawOscarDataset
+_target_: pyapnea.pytorch.raw_oscar_dataset.RawOscarDataset
 data_path: ??
