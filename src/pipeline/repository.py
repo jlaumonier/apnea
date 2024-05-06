@@ -5,6 +5,7 @@ import uuid
 import datetime
 from typing import List, Tuple, Optional
 
+import zipfile
 from hydra import initialize_config_dir, compose
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import OmegaConf, DictConfig
@@ -107,12 +108,14 @@ class Repository:
 
         return new_uuid, dest_data_path
 
-    def commit_dataset(self, guid: uuid.UUID, dataset_type: type, file_format: str,
+    def commit_dataset(self, guid: uuid.UUID, dataset_type: type, file_format: str, compression_format: str,
                        task_config: Optional[DictConfig]) -> None:
         """
         Commit the configurations of the new dataset to the repository
         :param guid: guid of the dataset
         :param dataset_type: type of the dataset (see src.data.dataset.*)
+        :param file_format: file format of the dataset (feather, pickle)
+        :param compression_format: format of the compressed dataset ('None', zip)
         :param task_config: configuration of the task used to create the dataset. None if the dataset is bootstraped
         """
         repo = git.Repo(search_parent_directories=True)
@@ -120,6 +123,7 @@ class Repository:
         self.metadata['datasets'][str(guid)] = {'type': str(dataset_type.__module__) + '.' +
                                                         str(dataset_type.__name__),
                                                 'file_format': file_format,
+                                                'compression_format': compression_format,
                                                 'dh_commit': str(datetime.datetime.now().isoformat()),
                                                 'git_commit_hash': sha}
         if task_config is not None:
@@ -134,6 +138,12 @@ class Repository:
         os.makedirs(os.path.join(self.path, 'conf'), exist_ok=True)
         with open(os.path.join(self.path, 'conf', str(guid) + '.yaml'), "w") as fp:
             OmegaConf.save(config=conf, f=fp)
+
+        if compression_format == 'zip':
+            shutil.make_archive(os.path.join(self.path, 'datasets', str(guid)), 'zip', os.path.join(self.path, 'datasets', str(guid)))
+            shutil.rmtree(os.path.join(self.path, 'datasets', str(guid)))
+            os.makedirs(os.path.join(self.path, 'datasets', str(guid)))
+            shutil.move(os.path.join(self.path, 'datasets', str(guid))+'.zip', os.path.join(self.path, 'datasets', str(guid)))
 
         # revalidate repository
         self.valid_repo = self._valid_repository()

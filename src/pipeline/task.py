@@ -21,7 +21,7 @@ class Task:
         # source dataset id
         src_id = cfg.pipeline.data.dataset.source
         self.sub_srcs = cfg.pipeline.data.dataset.sub_src
-        if  self.sub_srcs is None or self.sub_srcs == '??':
+        if self.sub_srcs is None or self.sub_srcs == '??':
             self.sub_srcs = [None]
         getitem_type = cfg.pipeline.data.dataset.getitem_type
         self.src_id = None
@@ -36,6 +36,7 @@ class Task:
         guid, dataset_path = self.repo.create_dataset()
         dataset_type = None
         file_format = None
+        cmpr_format = cfg.pipeline.options.compression
         # TODO os.path.join(self.repo.path, 'datasets', str(self.src_id)) should be given by repo ??
         list_sub_ds_path = os.listdir(os.path.join(self.repo.path, 'datasets', str(self.src_id)))
         if self.sub_srcs != [None]:
@@ -53,5 +54,5 @@ class Task:
             dataset_type, file_format = call(cfg.pipeline.data.tasks.task_func,
                                              oscar_dataset=ds[1],
                                              output_dir_path=os.path.join(dataset_path))
-        self.repo.commit_dataset(guid, dataset_type, file_format, task_config=cfg)
+        self.repo.commit_dataset(guid, dataset_type, file_format, compression_format=cmpr_format, task_config=cfg)
         self.dest_id = guid

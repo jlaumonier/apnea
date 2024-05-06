@@ -2,5 +2,6 @@ task_func:
   _target_: src.data.preparation_tasks.task_generate_all_rolling_window
   length: 500
   keep_last_incomplete: false
+  compression_format: zip
   oscar_dataset: ??
   output_dir_path: ??

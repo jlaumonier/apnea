@@ -1,6 +1,7 @@
 import os
 import shutil
 import pytest
+import zipfile
 
 from omegaconf import OmegaConf
 from pyapnea.pytorch.raw_oscar_dataset import RawOscarDataset
@@ -110,7 +111,7 @@ def test_commit_dataset(base_directory):
     fp.write('first line')
     fp.close()
 
-    repo.commit_dataset(guid, RawOscarDataset, file_format, task_config)
+    repo.commit_dataset(guid, RawOscarDataset, file_format, compression_format='None', task_config=task_config)
 
     assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
     tested_conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
@@ -124,6 +125,35 @@ def test_commit_dataset(base_directory):
     # ensure that metadata.json has been saved
     repo._load_repository()
     assert str(guid) in repo.metadata['datasets']
+
+    shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
+def test_commit_dataset_compressed(base_directory):
+    os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)
+    data_repo_path = os.path.join(base_directory, 'data', 'temp', 'repository')
+    repo = Repository(data_repo_path)
+    guid, dest_data_path = repo.create_dataset()
+    task_config = OmegaConf.create()
+    task_config['test'] = 'test1'
+    file_format = 'raw'
+
+    # create a fake dataset content
+    os.makedirs(dest_data_path)
+    fp = open(os.path.join(dest_data_path, 'temp.txt'), 'w')
+    fp.write('first line')
+    fp.close()
+    fp = open(os.path.join(dest_data_path, 'temp2.txt'), 'w')
+    fp.write('first text')
+    fp.close()
+
+    repo.commit_dataset(guid, RawOscarDataset, file_format, compression_format='zip', task_config=task_config)
+
+    list_files = os.listdir(dest_data_path)
+    assert len(list_files) == 1
+    assert os.path.splitext(list_files[0])[1] == '.zip'
+    zip = zipfile.ZipFile(os.path.join(dest_data_path, list_files[0]))
+    assert 'temp.txt' in zip.namelist()
+    assert 'temp2.txt' in zip.namelist()
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
 
