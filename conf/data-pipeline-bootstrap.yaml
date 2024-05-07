@@ -3,6 +3,7 @@ defaults:
   - global/logs/logger/mlflow
   - pipeline/data/dataset: default
   - pipeline/data/tasks: default
+  - pipeline/options/compression: default
   - _self_
 
 hydra:

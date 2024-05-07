@@ -72,7 +72,10 @@ class Repository:
         dest_data_path = os.path.join(self.path, 'datasets', str(new_uuid))
         shutil.copytree(source_dataset_path, dest_data_path)
 
-        self.commit_dataset(new_uuid, source_dataset_type, file_format=file_format, task_config=None)
+        self.commit_dataset(new_uuid, source_dataset_type,
+                            file_format=file_format,
+                            compression_format='no_compression',
+                            task_config=None)
 
         return new_uuid
 
@@ -115,7 +118,7 @@ class Repository:
         :param guid: guid of the dataset
         :param dataset_type: type of the dataset (see src.data.dataset.*)
         :param file_format: file format of the dataset (feather, pickle)
-        :param compression_format: format of the compressed dataset ('None', zip)
+        :param compression_format: format of the compressed dataset ('no', 'zip')
         :param task_config: configuration of the task used to create the dataset. None if the dataset is bootstraped
         """
         repo = git.Repo(search_parent_directories=True)
@@ -140,10 +143,12 @@ class Repository:
             OmegaConf.save(config=conf, f=fp)
 
         if compression_format == 'zip':
-            shutil.make_archive(os.path.join(self.path, 'datasets', str(guid)), 'zip', os.path.join(self.path, 'datasets', str(guid)))
+            shutil.make_archive(os.path.join(self.path, 'datasets', str(guid)), 'zip',
+                                os.path.join(self.path, 'datasets', str(guid)))
             shutil.rmtree(os.path.join(self.path, 'datasets', str(guid)))
             os.makedirs(os.path.join(self.path, 'datasets', str(guid)))
-            shutil.move(os.path.join(self.path, 'datasets', str(guid))+'.zip', os.path.join(self.path, 'datasets', str(guid)))
+            shutil.move(os.path.join(self.path, 'datasets', str(guid)) + '.zip',
+                        os.path.join(self.path, 'datasets', str(guid)))
 
         # revalidate repository
         self.valid_repo = self._valid_repository()

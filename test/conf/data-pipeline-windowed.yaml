@@ -1,6 +1,7 @@
 defaults:
   - pipeline/data/dataset: dataframe
   - pipeline/data/tasks: generate_all_rolling_window
+  - pipeline/options/compression: default
   - _self_
 
 hydra:

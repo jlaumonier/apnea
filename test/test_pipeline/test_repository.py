@@ -111,7 +111,7 @@ def test_commit_dataset(base_directory):
     fp.write('first line')
     fp.close()
 
-    repo.commit_dataset(guid, RawOscarDataset, file_format, compression_format='None', task_config=task_config)
+    repo.commit_dataset(guid, RawOscarDataset, file_format, compression_format='no_compression', task_config=task_config)
 
     assert os.path.exists(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
     tested_conf = OmegaConf.load(os.path.join(data_repo_path, 'conf', str(guid) + '.yaml'))
@@ -127,6 +127,7 @@ def test_commit_dataset(base_directory):
     assert str(guid) in repo.metadata['datasets']
 
     shutil.rmtree(os.path.join(base_directory, 'data', 'temp'))
+
 
 def test_commit_dataset_compressed(base_directory):
     os.makedirs(os.path.join(base_directory, 'data', 'temp'), exist_ok=True)

@@ -1,6 +1,7 @@
 defaults:
   - pipeline/data/dataset: numpy
   - pipeline/data/tasks: generate_balanced_dataset
+  - pipeline/options/compression: default
   - _self_
 
 hydra:

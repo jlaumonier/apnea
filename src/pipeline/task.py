@@ -36,7 +36,8 @@ class Task:
         guid, dataset_path = self.repo.create_dataset()
         dataset_type = None
         file_format = None
-        cmpr_format = cfg.pipeline.options.compression
+        cmpr_format = cfg.pipeline.options.compression.compression_format
+        print(cmpr_format)
         # TODO os.path.join(self.repo.path, 'datasets', str(self.src_id)) should be given by repo ??
         list_sub_ds_path = os.listdir(os.path.join(self.repo.path, 'datasets', str(self.src_id)))
         if self.sub_srcs != [None]:

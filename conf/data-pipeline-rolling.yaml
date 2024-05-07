@@ -3,6 +3,7 @@ defaults:
   - global/logs/logger/mlflow
   - pipeline/data/dataset: dataframe
   - pipeline/data/tasks: generate_all_rolling_window
+  - pipeline/options/compression: zip
   - _self_
 
 hydra:

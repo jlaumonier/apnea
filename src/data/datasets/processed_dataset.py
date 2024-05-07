@@ -2,6 +2,8 @@ from glob import glob
 from os import walk
 import os.path
 import pickle
+import zipfile
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -17,18 +19,28 @@ class ProcessedDataset(Dataset):
         """
         self.getitem_type = getitem_type
         self.data_path = data_path
+        self.real_data_path = data_path
 
-        if os.path.isfile(os.path.join(data_path, 'inputs.pkl')):
+        files = [f for f in os.listdir(self.data_path) if os.path.isfile(os.path.join(self.data_path, f))]
+        if len(files) == 1 and os.path.splitext(files[0])[1] == '.zip':
+            print('Unzipping {}'.format(files[0]))
+            self.temp_dir = tempfile.TemporaryDirectory()
+            with zipfile.ZipFile(os.path.join(self.data_path, files[0]), 'r') as zip_ref:
+                zip_ref.extractall(self.temp_dir.name)
+            self.real_data_path = self.temp_dir.name
+            print('Unzipping {} done'.format(files[0]))
+
+        if os.path.isfile(os.path.join(self.real_data_path, 'inputs.pkl')):
             self.file_format = 'pickle'
-            input_file_inputs = os.path.join(data_path, 'inputs.pkl')
-            input_file_gt = os.path.join(data_path, 'gt.pkl')
+            input_file_inputs = os.path.join(self.real_data_path, 'inputs.pkl')
+            input_file_gt = os.path.join(self.real_data_path, 'gt.pkl')
             with open(input_file_inputs, 'rb') as f_input:
                 self.inputs = pickle.load(f_input)
             with open(input_file_gt, 'rb') as f_gt:
                 self.ground_truths = pickle.load(f_gt)
         else:
             self.file_format = 'feather'
-            list_files = [y for x in walk(data_path) for y in glob(os.path.join(x[0], '*.feather'))]
+            list_files = [y for x in walk(self.real_data_path) for y in glob(os.path.join(x[0], '*.feather'))]
             self.list_files = [{'label': f, 'value': f, 'fullpath': f} for f in list_files]
 
         if limits is not None:
