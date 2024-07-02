@@ -10,7 +10,7 @@ from src.pipeline.task import Task
 def main(conf):
     conf.pipeline.data.dataset.source = '70f49f5a-63e0-4bfd-97c4-dfcb3d15ae1b'
 
-    data_repo_path = os.path.join('data', 'repository')
+    data_repo_path = os.path.join('..', 'data', 'repository')
     simple_task = Task(data_repo_path, conf)
     simple_task.run(conf)
 

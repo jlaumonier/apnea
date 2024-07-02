@@ -2,7 +2,7 @@ defaults:
   - global/logs/local/default
   - global/logs/logger/mlflow
   - pipeline/data/dataset: default
-  - pipeline/statistics/tasks: generate_statistics
+  - pipeline/data/tasks: generate_statistics
   - pipeline/options/compression: default
   - _self_
 
