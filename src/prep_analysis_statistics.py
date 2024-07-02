@@ -1,22 +1,18 @@
+import os
 import hydra
 from codecarbon import EmissionsTracker  # see https://github.com/mlco2/codecarbon/issues/244
 
-from src.data.datasets.processed_dataset import ProcessedDataset
 from src.data.utils import get_nb_events
+from src.pipeline.task import Task
 
 
-@hydra.main(config_path="../conf", config_name="config", version_base=None)
+@hydra.main(config_path="../conf", config_name="data-pipeline-statistics", version_base=None)
 def main(conf):
+    conf.pipeline.data.dataset.source = '70f49f5a-63e0-4bfd-97c4-dfcb3d15ae1b'
 
-    processed_dataset = ProcessedDataset(output_type='dataframe', limits=None)
-
-    stats = {'nb_files': len(processed_dataset)}
-
-    # get the existence of event in the file
-    nb_contain_event, events = get_nb_events(processed_dataset)
-
-    stats['nb_contain_event'] = nb_contain_event
-    print(stats)
+    data_repo_path = os.path.join('data', 'repository')
+    simple_task = Task(data_repo_path, conf)
+    simple_task.run(conf)
 
 if __name__ == "__main__":
     with EmissionsTracker(output_dir='..', log_level='error') as tracker:

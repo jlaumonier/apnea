@@ -6,14 +6,13 @@ from plotly.subplots import make_subplots
 from tqdm import tqdm
 
 from src.data.datasets.processed_dataset import ProcessedDataset
-from src.data.datasets.raw_oscar_dataset import RawOscarDataset
 from src.data.datasets.slpdb_dataset import SLPDB_Dataset
 from src.data.utils import get_annotations_ends
 
 app = Dash(__name__)
 
-#processed_dataset = ProcessedDataset(data_path='../test/data/processing/windowed', output_type='dataframe')
-processed_dataset = SLPDB_Dataset(data_path='../data/raw-slpdb/physionet.org/files/slpdb/1.0.0', output_type='dataframe', limits=slice(1, 2, None))
+processed_dataset = ProcessedDataset(data_path='../test/data/processing/windowed', output_type='dataframe')
+#processed_dataset = SLPDB_Dataset(data_path='../data/raw-slpdb/physionet.org/files/slpdb/1.0.0', output_type='dataframe', limits=slice(1, 2, None))
 #processed_dataset = RawOscarDataset(data_path='../test/data/raw/', output_type='dataframe')
 index_dataset = {}
 

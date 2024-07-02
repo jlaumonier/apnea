@@ -12,7 +12,7 @@ def main(conf):
     source_dataset_path = os.path.join('..', 'data', 'raw')
 
     repo = Repository(data_repo_path)
-    _ = repo.bootstrap(source_dataset_path, RawOscarDataset)
+    _ = repo.bootstrap(source_dataset_path, RawOscarDataset,  file_format='raw')
 
 
 if __name__ == "__main__":

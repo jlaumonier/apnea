@@ -1,0 +1,11 @@
+defaults:
+  - global/logs/local/default
+  - global/logs/logger/mlflow
+  - pipeline/data/dataset: default
+  - pipeline/statistics/tasks: generate_statistics
+  - pipeline/options/compression: default
+  - _self_
+
+hydra:
+  run:
+    dir: ../outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}

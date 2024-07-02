@@ -1,0 +1,4 @@
+task_func:
+  _target_: src.data.statistics.task_generate_statistics
+  oscar_dataset: ??
+  output_dir_path: ??
