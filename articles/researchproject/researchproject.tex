@@ -2,7 +2,7 @@
 
 \usepackage{amsfonts}
 
-\title{Reconnaissance et prévision de l'apnée du sommeil : Une approche d'apprentissage automatique pour améliorer le sommeil. }
+\title{Reconnaissance et prévision de l'apnée du sommeil : une approche d'apprentissage automatique pour améliorer le sommeil. }
 
 \author{Julien Laumonier}
 
@@ -64,8 +64,20 @@
 
     En partant d'un jeu de données sous la forme $X_0 = \mathbb{R}^{B_0 \times T_0 \times C_0}$ vers $X_1 = \mathbb{R}^{B_1 \times T_1 \times C_1}$ avec $B_1$
 
-    1) découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S+1}$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
+    Suppression des sessions trop courtes : les sessions trop courtes sont peu représentatives des sessions durant lesquelles se produisent un évènement d'apnée [REF ?]. C'est pourquoi nous supprimons toutes les sessions d'une durée inférieure à 30 minutes.
 
+    Generation des annotations : Sur le jeu de données original, les évènements sont inscrits à la fin de l'évènement réel. Or l'important est d'estimer le début de l'évènement, il faut donc le noter sur les données sources. Il existe plusieurs stratégies pour avoir une annotation plus complète. La première est de completer sur les 10 secondes avant. D'autres sont envisageables : estimer le début de l'évènement via de l'analyse de spectre, (À completer).
+
+    Découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S+1}$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
+
+    Découpage en ensembles entrainement-validation-test: le taux de découpage est de 80\%-10\%-10\% pour les ensembles entrainement-validation-test.
+
+    Balancement des données d'entrainement : Sur l'ensemble des sessions, le nombre d'évènement est très faible. Afin de rebalancer les données, plusieurs strategies sont à tester :
+    \begin{itemize}
+        \item Le sous échantillonage des données sans évènements
+        \item La pondération supérieure pour les données avec évènements.
+        \item L'utilisation d'une focale loss
+    \end{itemize}
     \section{Bibliographie}
 
 
