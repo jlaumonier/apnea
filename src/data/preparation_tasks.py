@@ -49,6 +49,11 @@ def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel:
 
 # thanks aneroid - I don't understand that, in 2023, this function is not included in pandas !
 # https://stackoverflow.com/questions/66482997/pandas-sliding-window-over-a-dataframe-column
+# Autre version :
+# claude.ia 2024-07-05
+# def generer_fenetres(df, taille_fenetre, pas):
+#     for i in range(0, len(df) - taille_fenetre + 1, pas):
+#         yield df.iloc[i:i+taille_fenetre]
 def _sliding_window_iter(df, length, keep_last_incomplete):
     if len(df) % length == 0 or not keep_last_incomplete:
         # if there is no last incomplete or if we do not want to keep it

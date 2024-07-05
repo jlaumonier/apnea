@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\usepackage{amsfonts}
+
 \title{Reconnaissance et prévision de l'apnée du sommeil : Une approche d'apprentissage automatique pour améliorer le sommeil. }
 
 \author{Julien Laumonier}
@@ -9,14 +11,14 @@
 
     \section{Introduction}
 
-L’apnée du sommeil est un trouble du sommeil caractérisé par un arrêt momentané et souvent cyclique de la respiration ou une réduction du flux d’air [1]. Ce trouble est souvent associé à une baisse de la qualité de vie, d'hypertension, d’augmentation du risque cardiovasculaire et de somnolence durant la journée [X]. On estime qu’il survient chez x\% des adultes.
-Sévérité
-Evènements d’apnée
-Traitement possibles
+    L’apnée du sommeil est un trouble du sommeil caractérisé par un arrêt momentané et souvent cyclique de la respiration ou une réduction du flux d’air [1]. Ce trouble est souvent associé à une baisse de la qualité de vie, d'hypertension, d’augmentation du risque cardiovasculaire et de somnolence durant la journée [X]. On estime qu’il survient chez x\% des adultes.
+    Sévérité
+    Evènements d’apnée
+    Traitement possibles
 
-Plusieurs problématiques peuvent survenir durant le traitement avec des machines CPAP. Les premiers mois d’adaptation sont difficiles car plusieurs contraintes surviennent. La pression minimale de ce type de machine est de 4 cmH2O et peut monter au dessus de 15 cmH2. De plus, les algorithmes des machines actuelles ont tendance à augmenter la pression après la première apnée et ne sont pas capables d’anticiper les évènements.
+    Plusieurs problématiques peuvent survenir durant le traitement avec des machines CPAP. Les premiers mois d’adaptation sont difficiles car plusieurs contraintes surviennent. La pression minimale de ce type de machine est de 4 cmH2O et peut monter au dessus de 15 cmH2. De plus, les algorithmes des machines actuelles ont tendance à augmenter la pression après la première apnée et ne sont pas capables d’anticiper les évènements.
 
-L’objectif de ce projet est donc de développer des modèles de prédiction des événements d’apnée avec les algorithmes d’apprentissage automatique de l’état de l’art. Une dimension d’explicabiilité devra être mise en œuvre pour extraire les caractéristiques menant à un évènement d’apnée.
+    L’objectif de ce projet est donc de développer des modèles de prédiction des événements d’apnée avec les algorithmes d’apprentissage automatique de l’état de l’art. Une dimension d’explicabiilité devra être mise en œuvre pour extraire les caractéristiques menant à un évènement d’apnée.
 
     \section{Revue de littérature}
     \subsection{État des connaissances actuelles}
@@ -25,25 +27,46 @@ L’objectif de ce projet est donc de développer des modèles de prédiction de
     \section{ Méthodologie}
     \subsection{Approche de recherche}
 
-Algorithme de détection d’anomalies
+    Algorithme de détection d’anomalies
 
-\subsection{Méthodes de collecte de données}
-\subsection{Méthodes d'analyse des données}
+    \subsection{Méthodes de collecte de données}
+    \subsection{Méthodes d'analyse des données}
 
-\section{Résultats attendus}
+    \section{Résultats attendus}
 
-\subsection{Hypothèses ou prédictions}
-\subsection{Contribution potentielle au domaine}
-\section{Calendrier de recherche}
-\subsection{Étapes principales du projet}
-\subsection{Échéancier}
+    \subsubsection{Description du projet}
 
-\section{Ressources nécessaires}
-\subsection{Budget}
-\subsection{Équipement}
-\subsection{Personnel}
-\section{Considérations éthiques (si applicable)}
-\section{Bibliographie}
+    Le problème que l'on souhaite résoudre peut se formuler de la manière suivante. $X$ correspond aux données d'entré, et $Y_z$ aux données de sortie. L'objectif est donc de predire si chaque séquence va mener dans $z \in {1, \dots, Z}$ prochains pas de temps à un évènement d'apnée. Chaque métrique sera évaluée selon différentes valeurs de $z$ pour mesurer l'efficacité d'un modèle à anticiper les évènements.
+
+    $$ X \in \mathbb{R}^{B \times T \times C}, Y_z \in \{0, 1\}^{B'} $$
+    avec $B$, le nombre de séquences, $T$ la longueur de chaque séquence, $C$ nombre de canaux.
+
+
+    \subsection{Hypothèses ou prédictions}
+    \subsection{Contribution potentielle au domaine}
+
+    \section{Calendrier de recherche}
+    \subsection{Étapes principales du projet}
+    \subsection{Échéancier}
+
+    \section{Ressources nécessaires}
+    \subsection{Budget}
+    \subsection{Équipement}
+    \subsection{Personnel}
+    \section{Considérations éthiques (si applicable)}
+    \section{Résultats}
+
+    \subsection{Analyse des données}
+
+    Le jeu de données comporte X sessions enregistrées.
+
+    \subsubsection{Tranformation des données}
+
+    En partant d'un jeu de données sous la forme $X_0 = \mathbb{R}^{B_0 \times T_0 \times C_0}$ vers $X_1 = \mathbb{R}^{B_1 \times T_1 \times C_1}$ avec $B_1$
+
+    1) découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S+1}$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
+
+    \section{Bibliographie}
 
 
 \end{document}
