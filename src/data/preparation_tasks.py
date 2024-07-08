@@ -49,39 +49,40 @@ def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel:
 
 # thanks aneroid - I don't understand that, in 2023, this function is not included in pandas !
 # https://stackoverflow.com/questions/66482997/pandas-sliding-window-over-a-dataframe-column
-# Autre version :
-# claude.ia 2024-07-05
-# def generer_fenetres(df, taille_fenetre, pas):
-#     for i in range(0, len(df) - taille_fenetre + 1, pas):
-#         yield df.iloc[i:i+taille_fenetre]
-def _sliding_window_iter(df, length, keep_last_incomplete):
-    if len(df) % length == 0 or not keep_last_incomplete:
-        # if there is no last incomplete or if we do not want to keep it
-        max_range = len(df) - length + 1
-    else:
-        # there is last incomplete and we do want to keep it
-        max_range = len(df) - length + 2
-    for start_row in range(0, max_range, length):
-        yield df[start_row:start_row + length]
+# Modified with help of claude.ia 2024-07-05, 2024-07-08
+def _sliding_window_iter(df, length, keep_last_incomplete, step):
+    df_length = len(df)
+    previous_end_row = 0
+    for start_row in range(0, df_length, step):
+        end_row = start_row + length
+        if end_row <= df_length:
+            previous_end_row = end_row
+            yield df.iloc[start_row:end_row]
+        elif keep_last_incomplete and previous_end_row < df_length:
+            yield df.iloc[start_row:]
+            break
 
 
 def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        length: int,
                                        keep_last_incomplete=True,
+                                       step: int = 1,
                                        sort_index=False) -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
     Does not support overlap yet.
     :param df: original dataframe
     :param length: length of all the subsets in points
-    :param keep_last_incomplete: True to keep the last incomplete slice (with len<lentgth) if it exists
+    :param keep_last_incomplete: True to keep the last incomplete slice (with len<length and at least one element not inside previous window) if it exists
+    :param step: step of the sliding windows for
+    :param sort_index: If true, the dataframe will be sorted before calculating sliding windows
     :return: a list of dataframes containing each window
     """
     if sort_index:
         sorted_df = df.sort_index()
     else:
         sorted_df = df
-    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete)]
+    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete, step)]
     return result
 
 
@@ -120,13 +121,16 @@ def generate_annotations(df: pd.DataFrame, length_event=None, output_events_merg
 def task_generate_all_rolling_window(oscar_dataset: Dataset,
                                      output_dir_path: str,
                                      length: int,
-                                     keep_last_incomplete=True) -> Tuple[Type, str]:
+                                     keep_last_incomplete=True,
+                                     step: int=1) -> Tuple[Type, str]:
     """
     This method generates all rolling windows from a complete dataset
     """
 
     def _process_element(idx_ts, ts):
-        dfs = generate_rolling_window_dataframes(ts, length=length, keep_last_incomplete=keep_last_incomplete)
+        dfs = generate_rolling_window_dataframes(ts, length=length,
+                                                 keep_last_incomplete=keep_last_incomplete,
+                                                 step=step)
         output_dir = os.path.join(output_dir_path, 'feather', 'df_' + str(idx_ts))
         os.makedirs(output_dir, exist_ok=True)
         for idx_df, df in enumerate(dfs):

@@ -85,13 +85,36 @@ def test_generate_rolling_window_dataframes_perfect_df():
     original_df = pd.DataFrame(data,
                                columns=['value'], index=tidx)
 
-    list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=desired_len)
 
     assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value'] == 73
+
+
+def test_generate_rolling_window_dataframes_perfect_df_with_step():
+    np.random.seed(10)
+    desired_len = 4
+    step = 2
+
+    rows, cols = 10, 1
+    data = np.random.randint(0, 100, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['value'], index=tidx)
+
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=step)
+    assert type(list_result_df) == list
+    assert len(list_result_df) == 4
+    assert len(list_result_df[0]) == desired_len
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
+    assert list_result_df[3].loc['2019-01-01 00:00:08', 'value'] == 73
 
 
 def test_generate_rolling_window_dataframes_multiple_columns():
@@ -104,7 +127,9 @@ def test_generate_rolling_window_dataframes_multiple_columns():
     original_df = pd.DataFrame(data,
                                columns=['value1', 'value2'], index=tidx)
 
-    list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=desired_len)
 
     assert type(list_result_df) == list
     assert len(list_result_df) == 5
@@ -124,8 +149,10 @@ def test_generate_rolling_window_dataframes_incomplete_df_take_last():
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
                                columns=['value'], index=tidx)
-    list_result_df = generate_rolling_window_dataframes(original_df, desired_len)
 
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=desired_len)
     assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
@@ -143,7 +170,11 @@ def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
                                columns=['value'], index=tidx)
-    list_result_df = generate_rolling_window_dataframes(original_df, desired_len, keep_last_incomplete=False)
+
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        keep_last_incomplete=False,
+                                                        step=desired_len)
 
     assert type(list_result_df) == list
     assert len(list_result_df) == 4
@@ -151,6 +182,54 @@ def test_generate_rolling_window_dataframes_incomplete_df_not_take_last():
     assert len(list_result_df[3]) == 2
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
     assert list_result_df[3].loc['2019-01-01 00:00:07', 'value'] == 8
+
+
+def test_generate_rolling_window_dataframes_incomplete_df_take_last_with_step():
+    np.random.seed(10)
+    desired_len = 3
+    step = 2
+
+    rows, cols = 10, 1
+    data = np.random.randint(0, 100, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['value'], index=tidx)
+
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        keep_last_incomplete=True,
+                                                        step=step)
+
+    assert type(list_result_df) == list
+    assert len(list_result_df) == 5
+    assert len(list_result_df[0]) == desired_len
+    assert len(list_result_df[4]) == 2
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
+    assert list_result_df[4].loc['2019-01-01 00:00:09', 'value'] == 0
+
+
+def test_generate_rolling_window_dataframes_no_incomplete_df_take_last_with_step():
+    np.random.seed(10)
+    desired_len = 3
+    step = 2
+
+    rows, cols = 9, 1
+    data = np.random.randint(0, 100, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['value'], index=tidx)
+
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        keep_last_incomplete=True,
+                                                        step=step)
+
+    assert type(list_result_df) == list
+    assert len(list_result_df) == 4
+    assert len(list_result_df[0]) == desired_len
+    assert len(list_result_df[3]) == 3
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value'] == 9
+    assert list_result_df[3].loc['2019-01-01 00:00:08', 'value'] == 73
 
 
 def test_generate_rolling_window_dataframes_index_not_ordered():
@@ -164,7 +243,10 @@ def test_generate_rolling_window_dataframes_index_not_ordered():
                                columns=['value'], index=tidx)
     original_df = original_df.sample(frac=1.0)
 
-    list_result_df = generate_rolling_window_dataframes(original_df, desired_len, sort_index=True)
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=desired_len,
+                                                        sort_index=True)
 
     assert type(list_result_df) == list
     assert len(list_result_df) == 5
@@ -309,7 +391,8 @@ def test_task_generate_all_rolling_window_output_feather_df(base_directory):
                                                             keep_last_incomplete=False,
                                                             output_dir_path=os.path.join(data_path, 'temp',
                                                                                          'processing',
-                                                                                         'windowed'))
+                                                                                         'windowed'),
+                                                            step=500)
 
     assert type_ds == ProcessedDataset
     assert file_format == 'feather'
