@@ -139,6 +139,28 @@ def test_generate_rolling_window_dataframes_multiple_columns():
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value2'] == 15
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value2'] == 33
 
+def test_generate_rolling_window_dataframes_multiple_columns():
+    np.random.seed(10)
+    desired_len = 2
+
+    rows, cols = 10, 2
+    data = np.random.randint(0, 100, size=(rows, cols))
+    tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
+    original_df = pd.DataFrame(data,
+                               columns=['value1', 'value2'], index=tidx)
+
+    list_result_df = generate_rolling_window_dataframes(df=original_df,
+                                                        length=desired_len,
+                                                        step=desired_len)
+
+    assert type(list_result_df) == list
+    assert len(list_result_df) == 5
+    assert len(list_result_df[0]) == desired_len
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value1'] == 9
+    assert list_result_df[4].loc['2019-01-01 00:00:08', 'value1'] == 62
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value2'] == 15
+    assert list_result_df[4].loc['2019-01-01 00:00:08', 'value2'] == 33
+
 
 def test_generate_rolling_window_dataframes_incomplete_df_take_last():
     np.random.seed(10)

@@ -70,6 +70,8 @@
 
     Découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S+1}$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
 
+    Transformer les annotations : De base, les données sont \"facilement\" annotables point par point. Dans ce cas, les données sont de la forme $(X^T, Y^T)$. Cependant, une autre manière d'annoter les données est de considérer un seul label par fenetre, qui represente si un evenement débutera après cette fenetre. Ansi, on peut avoir des données de la forme $(X^T, Y_k)$, avec $k$, le nombre de points maximun après la serie durant lesquels il pourrait y avoir un évènement. (TODO faire plusieurs schemas pour voir les différentes situations)
+
     Découpage en ensembles entrainement-validation-test: le taux de découpage est de 80\%-10\%-10\% pour les ensembles entrainement-validation-test.
 
     Balancement des données d'entrainement : Sur l'ensemble des sessions, le nombre d'évènement est très faible. Afin de rebalancer les données, plusieurs strategies sont à tester :

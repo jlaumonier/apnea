@@ -67,7 +67,8 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        length: int,
                                        keep_last_incomplete=True,
                                        step: int = 1,
-                                       sort_index=False) -> list[pd.DataFrame]:
+                                       sort_index=False,
+                                       annotation_type: str='ALL_POINTS') -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
     Does not support overlap yet.
@@ -76,6 +77,8 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     :param keep_last_incomplete: True to keep the last incomplete slice (with len<length and at least one element not inside previous window) if it exists
     :param step: step of the sliding windows for
     :param sort_index: If true, the dataframe will be sorted before calculating sliding windows
+    :param annotation_type: 'ALL_POINTS', set the result as X^N, Y^N.
+                            'ONE_POINT': X^N, Y_k with Y represent if there is the begining of an event within k timestep after the end (?)
     :return: a list of dataframes containing each window
     """
     if sort_index:
