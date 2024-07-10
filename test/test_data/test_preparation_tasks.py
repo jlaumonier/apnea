@@ -139,7 +139,7 @@ def test_generate_rolling_window_dataframes_multiple_columns():
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value2'] == 15
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value2'] == 33
 
-def test_generate_rolling_window_dataframes_multiple_columns():
+def test_generate_rolling_window_dataframes_multiple_columns_one_point():
     np.random.seed(10)
     desired_len = 2
 
@@ -147,19 +147,23 @@ def test_generate_rolling_window_dataframes_multiple_columns():
     data = np.random.randint(0, 100, size=(rows, cols))
     tidx = pd.date_range('2019-01-01', periods=rows, freq='S')
     original_df = pd.DataFrame(data,
-                               columns=['value1', 'value2'], index=tidx)
+                               columns=['value1', 'ApneaEvent'], index=tidx)
+    original_df['ApneaEvent'] = np.where(original_df['ApneaEvent'] > 50, 1, 0)
+    print(original_df['ApneaEvent'])
 
     list_result_df = generate_rolling_window_dataframes(df=original_df,
                                                         length=desired_len,
-                                                        step=desired_len)
+                                                        step=desired_len,
+                                                        annotation_type='ONE_POINT',
+                                                        one_point_annot_duration=2)
 
     assert type(list_result_df) == list
     assert len(list_result_df) == 5
     assert len(list_result_df[0]) == desired_len
     assert list_result_df[0].loc['2019-01-01 00:00:00', 'value1'] == 9
     assert list_result_df[4].loc['2019-01-01 00:00:08', 'value1'] == 62
-    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value2'] == 15
-    assert list_result_df[4].loc['2019-01-01 00:00:08', 'value2'] == 33
+    assert list_result_df[0].loc['2019-01-01 00:00:00', 'ApneaEvent'] == 15
+    assert list_result_df[4].loc['2019-01-01 00:00:08', 'ApneaEvent'] == 33
 
 
 def test_generate_rolling_window_dataframes_incomplete_df_take_last():

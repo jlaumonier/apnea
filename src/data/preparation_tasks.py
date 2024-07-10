@@ -50,14 +50,17 @@ def align_channels(df: pd.DataFrame, reference_channel: str, period_ref_channel:
 # thanks aneroid - I don't understand that, in 2023, this function is not included in pandas !
 # https://stackoverflow.com/questions/66482997/pandas-sliding-window-over-a-dataframe-column
 # Modified with help of claude.ia 2024-07-05, 2024-07-08
-def _sliding_window_iter(df, length, keep_last_incomplete, step):
+def _sliding_window_iter(df, length, keep_last_incomplete, step, annotation_type, one_point_annot_duration):
     df_length = len(df)
     previous_end_row = 0
     for start_row in range(0, df_length, step):
         end_row = start_row + length
         if end_row <= df_length:
             previous_end_row = end_row
-            yield df.iloc[start_row:end_row]
+            if annotation_type == 'ALL_POINTS':
+                yield df.iloc[start_row:end_row]
+            elif annotation_type == 'ONE_POINTS':
+                yield (df.iloc[start_row:end_row], (1 in df.iloc[end_row+1:end_row+one_point_annot_duration]))
         elif keep_last_incomplete and previous_end_row < df_length:
             yield df.iloc[start_row:]
             break
@@ -68,7 +71,8 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        keep_last_incomplete=True,
                                        step: int = 1,
                                        sort_index=False,
-                                       annotation_type: str='ALL_POINTS') -> list[pd.DataFrame]:
+                                       annotation_type: str='ALL_POINTS',
+                                       one_point_annot_duration: int = 0) -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
     Does not support overlap yet.
@@ -78,14 +82,14 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
     :param step: step of the sliding windows for
     :param sort_index: If true, the dataframe will be sorted before calculating sliding windows
     :param annotation_type: 'ALL_POINTS', set the result as X^N, Y^N.
-                            'ONE_POINT': X^N, Y_k with Y represent if there is the begining of an event within k timestep after the end (?)
+                            'ONE_POINT': X^N, Y_k with Y represent if there is the beginning of an event within k timestep after the end (?)
     :return: a list of dataframes containing each window
     """
     if sort_index:
         sorted_df = df.sort_index()
     else:
         sorted_df = df
-    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete, step)]
+    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete, step,annotation_type, one_point_annot_duration)]
     return result
 
 
