@@ -3,5 +3,7 @@ task_func:
   length: 250
   step: 125
   keep_last_incomplete: false
+  annotation_type: 'ONE_POINT'
+  one_point_annot_duration: 80
   oscar_dataset: ??
   output_dir_path: ??

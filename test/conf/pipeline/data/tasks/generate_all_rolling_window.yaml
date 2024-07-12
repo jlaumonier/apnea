@@ -1,7 +1,7 @@
 task_func:
   _target_: src.data.preparation_tasks.task_generate_all_rolling_window
-  length: 500
-  step: 500
+  length: 250
+  step: 125
   keep_last_incomplete: false
   oscar_dataset: ??
   output_dir_path: ??

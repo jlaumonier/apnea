@@ -68,7 +68,7 @@
 
     Generation des annotations : Sur le jeu de données original, les évènements sont inscrits à la fin de l'évènement réel. Or l'important est d'estimer le début de l'évènement, il faut donc le noter sur les données sources. Il existe plusieurs stratégies pour avoir une annotation plus complète. La première est de completer sur les 10 secondes avant. D'autres sont envisageables : estimer le début de l'évènement via de l'analyse de spectre, (À completer).
 
-    Découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S+1}$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
+    Découpage en sous-fenetres : $B_0$ sessions de longueurs $T_0$ (variables) vers $B_1$ sessions de longueurs $T_1$ (fixe). Avec $|B_1| = \frac{T_0-T_1}{S}+1$, $T_1$ la longueur de la fenêtre et $S$ le pas de fenêtre.
 
     Transformer les annotations : De base, les données sont \"facilement\" annotables point par point. Dans ce cas, les données sont de la forme $(X^T, Y^T)$. Cependant, une autre manière d'annoter les données est de considérer un seul label par fenetre, qui represente si un evenement débutera après cette fenetre. Ansi, on peut avoir des données de la forme $(X^T, Y_k)$, avec $k$, le nombre de points maximun après la serie durant lesquels il pourrait y avoir un évènement. (TODO faire plusieurs schemas pour voir les différentes situations)
 

@@ -141,7 +141,8 @@ def test_generate_rolling_window_dataframes_multiple_columns():
 
 def test_generate_rolling_window_dataframes_multiple_columns_one_point():
     np.random.seed(10)
-    desired_len = 2
+    desired_len = 3
+    step = 2
 
     rows, cols = 10, 2
     data = np.random.randint(0, 100, size=(rows, cols))
@@ -149,21 +150,22 @@ def test_generate_rolling_window_dataframes_multiple_columns_one_point():
     original_df = pd.DataFrame(data,
                                columns=['value1', 'ApneaEvent'], index=tidx)
     original_df['ApneaEvent'] = np.where(original_df['ApneaEvent'] > 50, 1, 0)
-    print(original_df['ApneaEvent'])
 
     list_result_df = generate_rolling_window_dataframes(df=original_df,
                                                         length=desired_len,
-                                                        step=desired_len,
+                                                        step=step,
                                                         annotation_type='ONE_POINT',
                                                         one_point_annot_duration=2)
-
     assert type(list_result_df) == list
+    assert type(list_result_df[0]) == tuple
     assert len(list_result_df) == 5
-    assert len(list_result_df[0]) == desired_len
-    assert list_result_df[0].loc['2019-01-01 00:00:00', 'value1'] == 9
-    assert list_result_df[4].loc['2019-01-01 00:00:08', 'value1'] == 62
-    assert list_result_df[0].loc['2019-01-01 00:00:00', 'ApneaEvent'] == 15
-    assert list_result_df[4].loc['2019-01-01 00:00:08', 'ApneaEvent'] == 33
+    assert len(list_result_df[0][0]) == desired_len
+    assert list_result_df[0][0].loc['2019-01-01 00:00:00', 'value1'] == 9
+    assert list_result_df[4][0].loc['2019-01-01 00:00:08', 'value1'] == 62
+    assert list_result_df[0][1] == 0
+    assert list_result_df[2][1] == 1
+    assert list_result_df[3][1] == 1
+    assert list_result_df[4][1] == 0
 
 
 def test_generate_rolling_window_dataframes_incomplete_df_take_last():
@@ -434,6 +436,36 @@ def test_task_generate_all_rolling_window_output_feather_df(base_directory):
         assert 'FlowRate' in df.keys()
         assert 'ApneaEvent' in df.keys()
         assert df['time_utc'].is_monotonic_increasing
+
+    shutil.rmtree(os.path.join(data_path, 'temp'))
+
+def test_task_generate_all_rolling_window_one_point(base_directory):
+    data_path = os.path.join(base_directory, 'data')
+    os.makedirs(os.path.join(data_path, 'temp'), exist_ok=True)
+    oscar_dataset = RawOscarDataset(data_path=os.path.join(data_path, 'raw'),
+                                    getitem_type='dataframe', limits=None)
+
+    type_ds, file_format = task_generate_all_rolling_window(oscar_dataset=oscar_dataset,
+                                                            length=250,
+                                                            keep_last_incomplete=False,
+                                                            output_dir_path=os.path.join(data_path, 'temp',
+                                                                                         'processing',
+                                                                                         'windowed'),
+                                                            step=150,
+                                                            annotation_type='ONE_POINT',
+                                                            one_point_annot_duration=80
+                                                            )
+
+    assert type_ds == ProcessedDataset
+
+    assert sorted(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed'))) == ['data.feather',
+                                                                                             'feather']
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather'))) == 2
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_0'))) == 4809
+    assert len(os.listdir(os.path.join(data_path, 'temp', 'processing', 'windowed', 'feather', 'df_1'))) == 169
+
+    df = pd.read_feather(os.path.join(data_path, 'temp', 'processing', 'windowed', 'data.feather'))
+    assert len(df) == 4809 + 169
 
     shutil.rmtree(os.path.join(data_path, 'temp'))
 

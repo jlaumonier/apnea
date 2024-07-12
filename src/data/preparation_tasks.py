@@ -11,7 +11,6 @@ from torch.utils.data import Dataset
 
 from pyapnea.oscar.oscar_constants import CHANNELS, ChannelID
 from src.data.datasets.processed_dataset import ProcessedDataset
-from src.data.datasets.pickle_dataset import PickleDataset
 from .utils import get_nb_events
 
 TASK_ERROR_INVALID_PARAM = 'One of the task parameters is invalid.'
@@ -59,11 +58,15 @@ def _sliding_window_iter(df, length, keep_last_incomplete, step, annotation_type
             previous_end_row = end_row
             if annotation_type == 'ALL_POINTS':
                 yield df.iloc[start_row:end_row]
-            elif annotation_type == 'ONE_POINTS':
-                yield (df.iloc[start_row:end_row], (1 in df.iloc[end_row+1:end_row+one_point_annot_duration]))
+            elif annotation_type == 'ONE_POINT':
+                yield (df.iloc[start_row:end_row], int(1 in df['ApneaEvent'].iloc[end_row:end_row+one_point_annot_duration].values))
         elif keep_last_incomplete and previous_end_row < df_length:
-            yield df.iloc[start_row:]
+            if annotation_type == 'ALL_POINTS':
+                yield df.iloc[start_row:]
+            elif annotation_type == 'ONE_POINT':
+                yield (df.iloc[start_row:], 0)
             break
+
 
 
 def generate_rolling_window_dataframes(df: pd.DataFrame,
@@ -129,21 +132,38 @@ def task_generate_all_rolling_window(oscar_dataset: Dataset,
                                      output_dir_path: str,
                                      length: int,
                                      keep_last_incomplete=True,
-                                     step: int=1) -> Tuple[Type, str]:
+                                     step: int=1,
+                                     annotation_type: str='ALL_POINTS',
+                                     one_point_annot_duration: int = 0
+                                     ) -> Tuple[Type, str]:
     """
     This method generates all rolling windows from a complete dataset
     """
 
+
+
     def _process_element(idx_ts, ts):
-        dfs = generate_rolling_window_dataframes(ts, length=length,
+        windows_result = generate_rolling_window_dataframes(ts, length=length,
                                                  keep_last_incomplete=keep_last_incomplete,
-                                                 step=step)
+                                                 step=step,
+                                                 annotation_type=annotation_type,
+                                                 one_point_annot_duration=one_point_annot_duration)
+
         output_dir = os.path.join(output_dir_path, 'feather', 'df_' + str(idx_ts))
         os.makedirs(output_dir, exist_ok=True)
-        for idx_df, df in enumerate(dfs):
-            df_name = 'df_' + str(idx_ts) + '_' + str(idx_df)
+        annotations = []
+        for idx_w, w in enumerate(windows_result):
+            df, one_annot = w if isinstance(w, tuple) else (w, None)
+            df_name = 'df_' + str(idx_ts) + '_' + str(idx_w)
             df.reset_index(inplace=True)
             df.to_feather(os.path.join(output_dir, df_name + '.feather'))
+            if one_annot is not None:
+                annotations.append([os.path.join(output_dir, df_name + '.feather'), one_annot])
+        if len(annotations) > 0:
+            df_data = pd.DataFrame(annotations, columns=['filename', 'ApneaEvent'])
+            df_data.to_feather(os.path.join(output_dir_path, 'data'+ str(idx_ts)+'.feather'))
+
+
 
     try:
         assert oscar_dataset.getitem_type == 'dataframe'
@@ -153,6 +173,17 @@ def task_generate_all_rolling_window(oscar_dataset: Dataset,
     # for idx_ts, ts in enumerate(oscar_dataset):
     #    _process_element(idx_ts, ts)
     p_map(_process_element, range(len(oscar_dataset)), oscar_dataset)
+
+    if 'data0.feather' in os.listdir(os.path.join(output_dir_path)):
+        df_annot = None
+        for d in range(len(oscar_dataset)):
+            df = pd.read_feather(os.path.join(output_dir_path, 'data'+ str(d)+'.feather'))
+            os.remove(os.path.join(output_dir_path, 'data'+ str(d)+'.feather'))
+            if df_annot is None:
+                df_annot = df
+            else:
+                df_annot = pd.concat([df_annot, df])
+        df_annot.to_feather(os.path.join(output_dir_path, 'data.feather'))
 
     return ProcessedDataset, 'feather'
 
