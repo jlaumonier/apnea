@@ -59,7 +59,8 @@ def _sliding_window_iter(df, length, keep_last_incomplete, step, annotation_type
             if annotation_type == 'ALL_POINTS':
                 yield df.iloc[start_row:end_row]
             elif annotation_type == 'ONE_POINT':
-                yield (df.iloc[start_row:end_row], int(1 in df['ApneaEvent'].iloc[end_row:end_row+one_point_annot_duration].values))
+                yield (df.iloc[start_row:end_row],
+                       int(1 in df['ApneaEvent'].iloc[end_row:end_row + one_point_annot_duration].values))
         elif keep_last_incomplete and previous_end_row < df_length:
             if annotation_type == 'ALL_POINTS':
                 yield df.iloc[start_row:]
@@ -68,13 +69,12 @@ def _sliding_window_iter(df, length, keep_last_incomplete, step, annotation_type
             break
 
 
-
 def generate_rolling_window_dataframes(df: pd.DataFrame,
                                        length: int,
                                        keep_last_incomplete=True,
                                        step: int = 1,
                                        sort_index=False,
-                                       annotation_type: str='ALL_POINTS',
+                                       annotation_type: str = 'ALL_POINTS',
                                        one_point_annot_duration: int = 0) -> list[pd.DataFrame]:
     """
     This method generates subsets of the original dataset, with fixed length, using sliding window.
@@ -92,7 +92,8 @@ def generate_rolling_window_dataframes(df: pd.DataFrame,
         sorted_df = df.sort_index()
     else:
         sorted_df = df
-    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete, step,annotation_type, one_point_annot_duration)]
+    result = [d for d in _sliding_window_iter(sorted_df, length, keep_last_incomplete, step, annotation_type,
+                                              one_point_annot_duration)]
     return result
 
 
@@ -132,22 +133,20 @@ def task_generate_all_rolling_window(oscar_dataset: Dataset,
                                      output_dir_path: str,
                                      length: int,
                                      keep_last_incomplete=True,
-                                     step: int=1,
-                                     annotation_type: str='ALL_POINTS',
+                                     step: int = 1,
+                                     annotation_type: str = 'ALL_POINTS',
                                      one_point_annot_duration: int = 0
                                      ) -> Tuple[Type, str]:
     """
     This method generates all rolling windows from a complete dataset
     """
 
-
-
     def _process_element(idx_ts, ts):
         windows_result = generate_rolling_window_dataframes(ts, length=length,
-                                                 keep_last_incomplete=keep_last_incomplete,
-                                                 step=step,
-                                                 annotation_type=annotation_type,
-                                                 one_point_annot_duration=one_point_annot_duration)
+                                                            keep_last_incomplete=keep_last_incomplete,
+                                                            step=step,
+                                                            annotation_type=annotation_type,
+                                                            one_point_annot_duration=one_point_annot_duration)
 
         output_dir = os.path.join(output_dir_path, 'feather', 'df_' + str(idx_ts))
         os.makedirs(output_dir, exist_ok=True)
@@ -158,12 +157,12 @@ def task_generate_all_rolling_window(oscar_dataset: Dataset,
             df.reset_index(inplace=True)
             df.to_feather(os.path.join(output_dir, df_name + '.feather'))
             if one_annot is not None:
-                annotations.append([os.path.join(output_dir, df_name + '.feather'), one_annot])
+                relative_path = os.path.join(output_dir, df_name + '.feather')
+                relative_path = os.path.relpath(relative_path, output_dir_path)
+                annotations.append([relative_path, one_annot])
         if len(annotations) > 0:
             df_data = pd.DataFrame(annotations, columns=['filename', 'ApneaEvent'])
-            df_data.to_feather(os.path.join(output_dir_path, 'data'+ str(idx_ts)+'.feather'))
-
-
+            df_data.to_feather(os.path.join(output_dir_path, 'data' + str(idx_ts) + '.feather'))
 
     try:
         assert oscar_dataset.getitem_type == 'dataframe'
@@ -177,8 +176,8 @@ def task_generate_all_rolling_window(oscar_dataset: Dataset,
     if 'data0.feather' in os.listdir(os.path.join(output_dir_path)):
         df_annot = None
         for d in range(len(oscar_dataset)):
-            df = pd.read_feather(os.path.join(output_dir_path, 'data'+ str(d)+'.feather'))
-            os.remove(os.path.join(output_dir_path, 'data'+ str(d)+'.feather'))
+            df = pd.read_feather(os.path.join(output_dir_path, 'data' + str(d) + '.feather'))
+            os.remove(os.path.join(output_dir_path, 'data' + str(d) + '.feather'))
             if df_annot is None:
                 df_annot = df
             else:
@@ -285,7 +284,6 @@ def task_generate_balanced_dataset(oscar_dataset: Dataset,
             pickle.dump(ground_truths, f_gt)
 
     return ProcessedDataset, oscar_dataset.file_format
-
 
 
 def task_generate_split_dataset(oscar_dataset: Dataset,

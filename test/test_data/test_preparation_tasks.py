@@ -466,6 +466,7 @@ def test_task_generate_all_rolling_window_one_point(base_directory):
 
     df = pd.read_feather(os.path.join(data_path, 'temp', 'processing', 'windowed', 'data.feather'))
     assert len(df) == 4809 + 169
+    assert df.iloc[0].to_list() == ['feather/df_0/df_0_0.feather', 0]
 
     shutil.rmtree(os.path.join(data_path, 'temp'))
 

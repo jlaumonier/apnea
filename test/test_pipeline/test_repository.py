@@ -217,7 +217,9 @@ def test_get_list_tree_chain(base_directory):
                      ('a67ff056-fd10-4b41-bd1a-104f9e23279e', '9e81da40-41a1-4f9b-9bba-41de71b0ebd9'),
                      ('42d374a5-5644-479a-89f0-651b413dd275', 'a67ff056-fd10-4b41-bd1a-104f9e23279e'),
                      ('9f234011-4074-4a95-8b4b-77d47258bba7', '42d374a5-5644-479a-89f0-651b413dd275'),
-                     ('46bdf022-fa33-471d-8e11-3cc6cb60574f', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3')
+                     ('46bdf022-fa33-471d-8e11-3cc6cb60574f', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'),
+                     ('8a406376-2bf3-4430-9d61-54d8eb6099b2', '8b663706-ab51-4a9a-9a66-eb9ac2c135f3'),
+                     ('5b94033a-581f-48de-afae-677fa00f772a', '8a406376-2bf3-4430-9d61-54d8eb6099b2')
                      ]
 
     result = repo.get_list_tree_chain()
